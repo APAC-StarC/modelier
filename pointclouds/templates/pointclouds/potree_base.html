@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>{{ vis.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'pointclouds/potree/build/potree.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'pointclouds/potree/libs/jquery-ui/jquery-ui.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'pointclouds/potree/libs/openlayers3/ol.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'pointclouds/potree/libs/spectrum/spectrum.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'pointclouds/potree/libs/jstree/themes/mixed/style.css' %}">
+    <style>
+        body{
+            font-family: 'Roboto', sans-serif;
+        }
+    </style
+</head>
+
+<body>
+<script src="{% static 'pointclouds/potree/libs/jquery/jquery-3.1.1.min.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/spectrum/spectrum.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/jquery-ui/jquery-ui.min.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/three.js/build/three.min.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/three.js/extra/lines.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/other/BinaryHeap.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/tween/tween.min.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/d3/d3.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/proj4/proj4.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/openlayers3/ol.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/i18next/i18next.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/jstree/jstree.js' %}"></script>
+<script src="{% static 'pointclouds/potree/build/potree.js' %}"></script>
+<script src="{% static 'pointclouds/potree/libs/plasio/js/laslaz.js' %}"></script>
+
+<!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
+<!-- INCLUDE SETTINGS HERE -->
+{% block content %}
+    <div style="display: flex; flex-direction: column; height: 100vh">
+    <div class="">
+        {% block header %}
+        {% endblock %}
+    </div>
+    <div style="position: relative; flex-grow: 1">
+        {% block potree_container %}
+            <div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
+                <div id="potree_render_area"></div>
+                <div id="potree_sidebar_container"></div>
+            </div>
+        {% endblock %}
+    </div>
+    <div class="">
+        {% block footer %}
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+    <script>
+
+        window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
+
+        viewer.setEDLEnabled(true);
+        viewer.setFOV(60);
+        viewer.setPointBudget(1 * 1000 * 1000);
+        viewer.setMinNodeSize(0);
+        viewer.loadSettingsFromURL();
+
+        viewer.setDescription("{{ vis.title }}");
+
+        {% if vis.tools_enabled %}
+            viewer.loadGUI().then(() => {
+                viewer.setLanguage('en');
+                {% if not vis.show_tools %}
+                    $("#menu_tools").next().html("");
+                    $("#menu_tools").hide();
+                {% endif %}
+                {% if not vis.show_scene %}
+                    $("#menu_scene").next().html("");
+                    $("#menu_scene").hide();
+                {% endif %}
+                {% if not vis.show_filters %}
+                    $("#menu_filters").next().html("");
+                    $("#menu_filters").hide();
+                {% endif %}
+                {% if not vis.show_about %}
+                    $("#menu_about").next().html("");
+                    $("#menu_about").hide();
+                {% endif %}
+                {% if not vis.show_appearance %}
+                    $("#menu_appearance").next().html("");
+                    $("#menu_appearance").hide();
+                {% endif %}
+            });
+
+
+        {% endif  %}
+
+        {% for pt in vis.pointclouds.all %}
+            Potree.loadPointCloud("{{ pt.pointcloud_url }}", "{{ pt.title }}", function (e) {
+                let scene = viewer.scene;
+                let pointcloud = e.pointcloud;
+                let material = pointcloud.material;
+                material.size=1;
+                material.shape={{ pt.material_shape }};
+                material.pointSizeType = {{ pt.material_point_size_type }};
+                viewer.scene.addPointCloud(pointcloud);
+                window.viewer.fitToScreen();
+            });
+        {% endfor %}
+    </script>
+{% endblock %}
+</body>
+</html>
