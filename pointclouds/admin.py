@@ -28,7 +28,7 @@ class PotreeVisualizationAdmin(admin.ModelAdmin):
 
         ('Initialization settings', {
             'classes': ('suit-tab', 'suit-tab-settings',),
-            'fields': ["initial_point_size", "initial_fov", "initial_opacity", "initial_edl_enabled",
+            'fields': ["initial_fov", "initial_opacity", "initial_edl_enabled",
                        "initial_edl_radius", "initial_edl_strength", "initial_point_budget",
                        "initial_show_bounding_box", "initial_material", "initial_point_sizing", "initial_quality",
                        "initial_position", "initial_target", "initial_background", ]}),
