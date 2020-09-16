@@ -108,6 +108,9 @@
         z-index: 1;
 
     }
+    .shift-down #img-overlay-wrapper {
+        display: none !important;
+    }
 
     #img-overlay-wrapper .flex-container {
         display: flex;
@@ -225,7 +228,24 @@
 
         $("#img-overlay-wrapper .close").click(()=>{
             $('#img-overlay-wrapper').hide();
-        })
+        });
+
+        $("body").on('keydown', (event)=>{
+            event = event || window.event;
+            console.log("Keydown", event);
+            if(event.keyCode==16) {
+                $(event.currentTarget).addClass('shift-down');
+            }
+
+        });
+        $("body").on('keyup', (event)=>{
+            event = event || window.event;
+            console.log("Keyup", event);
+            if(event.keyCode==16) {
+                $(event.currentTarget).removeClass('shift-down');
+            }
+
+        });
     </script>
 {% endblock %}
 </body>
