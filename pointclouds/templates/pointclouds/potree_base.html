@@ -14,10 +14,10 @@
     <link rel="stylesheet" type="text/css" href="{% static 'pointclouds/potree/libs/spectrum/spectrum.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'pointclouds/potree/libs/jstree/themes/mixed/style.css' %}">
     <style>
-        body{
+        body {
             font-family: 'Roboto', sans-serif;
         }
-    </style
+    </style>
 </head>
 
 <body>
@@ -37,28 +37,137 @@
 <script src="{% static 'pointclouds/potree/libs/plasio/js/laslaz.js' %}"></script>
 
 <!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
+
+<link rel="stylesheet" type="text/css" href="{% static 'slick/slick.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'slick/slick-theme.css' %}"/>
+<script type="text/javascript" src="{% static 'slick/slick.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'pointclouds/custom_config_load.js' %}"></script>
+<style>
+    #img-slider-container {
+        position: absolute;
+        bottom: 5px;
+        right: 25px;
+        height: 250px;
+        width: 300px;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 1000;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: stretch;
+        align-items: stretch;
+    }
+
+    #img-slider-container h1 {
+        font-size: 1.4rem;
+        color: white;
+        text-align: center;
+    }
+
+    #img-slider {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    #img-slider .slide-box {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #img-slider .slide-image {
+        max-height: 100%;
+        max-width: 100%;
+        flex-grow: 1;
+    }
+
+    #img-slider .slide-title {
+        color: white;
+        text-align: center;
+        font-size: 1rem;
+        flex-shrink: 1;
+        padding-top: 5px;
+    }
+
+    #img-slider .slick-slide {
+        cursor: pointer;
+    }
+
+    #img-overlay-wrapper {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: none;
+        z-index: 1;
+
+    }
+
+    #img-overlay-wrapper .flex-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    #img-overlay-wrapper #img-container {
+        width: 50%;
+        opacity: 0.2;
+        transition: opacity 1s;
+    }
+    #img-overlay-wrapper #img-container:hover {
+        width: 50%;
+        opacity: 1;
+    }
+
+    #img-container img {
+        max-width: 100%;
+    }
+</style>
 <!-- INCLUDE SETTINGS HERE -->
 {% block content %}
     <div style="display: flex; flex-direction: column; height: 100vh">
-    <div class="">
-        {% block header %}
-        {% endblock %}
-    </div>
-    <div style="position: relative; flex-grow: 1">
-        {% block potree_container %}
-            <div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
-                <div id="potree_render_area"></div>
-                <div id="potree_sidebar_container"></div>
+        <div class="">
+            {% block header %}
+            {% endblock %}
+        </div>
+        <div style="position: relative; flex-grow: 1">
+            {% block potree_container %}
+                <div class="potree_container"
+                     style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
+                    <div id="potree_render_area"></div>
+                    <div id="potree_sidebar_container"></div>
+                </div>
+            {% endblock %}
+            <div id="img-slider-container" style="">
+                <div id="img-slider" style="position: relative; width: 100%; height:100%;"></div>
             </div>
-        {% endblock %}
+            <div id="img-overlay-wrapper">
+                <div class="flex-container">
+                    <div id="img-container"></div>
+                    <button class="close">close</button>
+                </div>
+
+            </div>
+        </div>
+        <div class="">
+            {% block footer %}
+            {% endblock %}
+        </div>
     </div>
-    <div class="">
-        {% block footer %}
-        {% endblock %}
-    </div>
-</div>
 {% endblock %}
 {% block js %}
+
+    {{ vis.json_config|json_script:"visConfig" }}
+
     <script>
 
         window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
@@ -71,6 +180,7 @@
 
         viewer.setDescription("{{ vis.title }}");
 
+        const visConfig = JSON.parse(document.getElementById('visConfig').textContent); //Gets pointcloud json config generated from django template tag above
         {% if vis.tools_enabled %}
             viewer.loadGUI().then(() => {
                 viewer.setLanguage('en');
@@ -99,18 +209,23 @@
 
         {% endif  %}
 
-        {% for pt in vis.pointclouds.all %}
+        {% for pt in pointclouds %}
             Potree.loadPointCloud("{{ pt.pointcloud_url }}", "{{ pt.title }}", function (e) {
                 let scene = viewer.scene;
                 let pointcloud = e.pointcloud;
                 let material = pointcloud.material;
-                material.size=1;
-                material.shape={{ pt.material_shape }};
+                material.size = 1;
+                material.shape ={{ pt.material_shape }};
                 material.pointSizeType = {{ pt.material_point_size_type }};
                 viewer.scene.addPointCloud(pointcloud);
-                window.viewer.fitToScreen();
+                viewer.fitToScreen();
+                loadCustomConfig(visConfig["{{ pt.jsId }}"], viewer);
             });
         {% endfor %}
+
+        $("#img-overlay-wrapper .close").click(()=>{
+            $('#img-overlay-wrapper').hide();
+        })
     </script>
 {% endblock %}
 </body>

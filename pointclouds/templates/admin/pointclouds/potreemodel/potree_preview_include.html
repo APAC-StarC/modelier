@@ -1,0 +1,5 @@
+{% if original.pointcloud_url %}
+<div style="overflow: auto; width:100%; height:510px;">
+    <iframe src="{% url 'potree_admin_model_preview' original.pk %}" width="100%" height="500px"></iframe>
+</div>
+{% endif %}

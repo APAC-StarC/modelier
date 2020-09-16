@@ -1,11 +1,73 @@
 from django.contrib import admin
 from .models import PotreeVisualization, PotreeModel, PotreeVisualizationCollaborator
+from .models import PotreeHotspot, PotreeAnnotation, PotreeImage
+from suit.sortables import SortableTabularInline, SortableStackedInline
 
+# class PotreeHotspotInline(admin.TabularInline):
+#     model = PotreeHotspot
+#     #min_num = 1
+#     sortable = 'order'
+#     extra = 0
+#     verbose_name_plural = 'Hotspots'
+#     suit_form_inlines_hide_original = True
+#     suit_classes = 'suit-tab suit-tab-hotspots'
+
+class PotreeAnnotationInline(SortableStackedInline):
+    model = PotreeAnnotation
+    #min_num = 1
+    sortable = 'order'
+    extra = 0
+    verbose_name_plural = 'Annotations'
+    suit_form_inlines_hide_original = True
+    suit_classes = 'suit-tab suit-tab-annotations'
+
+class PotreeImageInline(SortableTabularInline):
+    model = PotreeImage
+    #min_num = 1
+    sortable = 'order'
+    extra = 0
+    verbose_name_plural = 'Images'
+    suit_form_inlines_hide_original = True
+    suit_classes = 'suit-tab suit-tab-images'
 
 @admin.register(PotreeModel)
 class PotreeModelAdmin(admin.ModelAdmin):
     list_display = ['title']
     search_fields = ['title']
+    inlines = (PotreeAnnotationInline, PotreeImageInline)
+    suit_form_tabs = (('general', 'General'),
+                      ('modelconfig', 'Model Config'),
+                      # ('hotspots', 'Hotspots'),
+                      ('annotations', 'Annotations'),
+                      ('images', 'Images'))
+    suit_form_includes = (
+        ('admin/pointclouds/potreemodel/potree_preview_include.html', 'middle', ''),
+    )
+    # Somehow on each save or change we should rerender the model? or maybe the config from scratch? (so instead of reloading the whole model,
+    # we can instead reload the config from zero
+    # No, for reloading the model, we need to do a save (so a refresh happens).
+    # For every changefield change (like in input change event, or a focus-out event), we rerender the config (not reloading the pointcloud,
+    # we just cleanup the pointcloud config and reapply the config
+    fieldsets = [
+        (None, {
+            'classes': ('suit-tab', 'suit-tab-general',),
+            'fields': ['title', 'pointcloud_url']
+        }),
+        ('General Settings', {
+            'classes': ('suit-tab', 'suit-tab-modelconfig',),
+            'fields': ["material_point_size_type", "material_shape"]}),
+
+        # ('Hotspots', {
+        #     'classes': ('suit-tab', 'suit-tab-hotspots',),
+        #     'fields': []}),
+
+        ('Annotations', {
+            'classes': ('suit-tab', 'suit-tab-annotations',),
+            'fields': []}),
+        ('Images', {
+            'classes': ('suit-tab', 'suit-tab-images',),
+            'fields': []}),
+    ]
 
 class PotreeVisualizationCollaboratorInlineAdmin(admin.TabularInline):
     model = PotreeVisualizationCollaborator

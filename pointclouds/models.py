@@ -21,6 +21,28 @@ class PotreeModel(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def jsId(self):
+        return str(self.id.hex)
+    def json_config(self):
+        config = {
+            "annotations": [{
+                "id": x.id,
+                "title":x.title,
+                "body":x.body,
+                "position":x.position,
+                "cameraPosition":x.camera_position,
+                "cameraTarget":x.camera_target,
+            } for x in self.annotations.all()],
+            "images": {x.id:{
+                "id": x.id,
+                "title": x.title,
+                "url": x.img.url,
+                "cameraPosition": x.camera_position,
+                "cameraTarget": x.camera_target,
+            } for x in self.images.all()},
+        }
+        return config
 
 BACKGROUND_OPTIONS = (
     ('', 'None'),
@@ -35,6 +57,13 @@ POTREE_INIT_PARAMS = ['pointSize', 'FOV', 'opacity', 'edlEnabled', 'edlRadiues',
 
 
 class PotreeVisualization(models.Model):
+    def __init__(self, *args, **kwargs):
+
+        pointclouds_override = kwargs.pop('pointclouds_override', None)
+        super(PotreeVisualization, self).__init__(*args, **kwargs)
+        self.pointclouds_override = pointclouds_override
+
+
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
     subtitle = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
@@ -120,7 +149,13 @@ class PotreeVisualization(models.Model):
     branded_preview_link.short_description = 'Website'
     preview_link_ssl.short_description = 'Preview SSL'
 
-
+    def json_config(self):
+        if self.pointclouds_override:
+            pts = self.pointclouds_override
+        else:
+            pts = self.pointclouds.all()
+        config = { pt.jsId:pt.json_config() for pt in pts}
+        return config
 class PotreeVisualizationCollaborator(models.Model):
     '''
     Intermediate table for collaborators M2M fields on PotreeVisualization, to hold ordering etc..
@@ -131,3 +166,31 @@ class PotreeVisualizationCollaborator(models.Model):
 
     def __str__(self):
         return f"Collaborator"
+
+
+
+class PotreeHotspot(models.Model):
+    title = models.CharField(max_length=254)
+    camera_position = models.CharField(max_length=254,blank=True, help_text="x,y,z using comma separated values")
+    camera_target = models.CharField(max_length=254,blank=True, help_text="x,y,z using comma separated values")
+
+
+    def __unicode__(self):
+        return self.title
+
+    class Meta:
+        abstract=True
+
+class PotreeAnnotation(PotreeHotspot):
+    order = models.PositiveIntegerField(default=0)
+    body = RichTextField(config_name='annotation_editor', blank=True)
+    position = models.CharField(max_length=254, blank=True, help_text="x,y,z using comma separated values")
+    pointcloud = models.ForeignKey(PotreeModel, on_delete=models.CASCADE, related_name='annotations')
+    class Meta:
+        ordering = ('order',)
+class PotreeImage(PotreeHotspot):
+    order = models.PositiveIntegerField(default=0)
+    img = models.ImageField(upload_to='galleries')
+    pointcloud = models.ForeignKey(PotreeModel, on_delete=models.CASCADE, related_name='images')
+    class Meta:
+        ordering = ('order',)

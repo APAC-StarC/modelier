@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 ROOT_URLCONF = 'modelier.urls'
 
@@ -138,4 +139,33 @@ CKEDITOR_CONFIGS = {
             ['TextColor', 'BGColor']
         ]
     },
+    'annotation_editor': {
+        'toolbar': 'Annotation',
+        'toolbar_Annotation': [
+            ['Bold', 'Italic', 'Underline'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source'],
+            ['TextColor', 'BGColor'],
+            ['Embed']
+        ]
+    },
+    'extraPlugins': ','.join([
+            #'uploadimage', # the upload image feature
+            # your extra plugins here
+            #'div',
+            'embed',
+            'mediaembed',
+            #'autolink',
+            #'autoembed',
+            #'embedsemantic',
+            #'autogrow',
+            # 'devtools',
+            #'widget',
+            #'lineutils',
+            #'clipboard',
+            #'dialog',
+            #'dialogui',
+            #'elementspath'
+        ]),
 }
