@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 IS_PROD = os.environ.get('ENVIRONMENT','DEV') == 'PROD'
-USE_S3 = os.environ.get('USE_S3',False)
+USE_S3 = os.environ.get('USE_S3', 'FALSE') == 'TRUE'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not IS_PROD
 
@@ -158,9 +158,9 @@ if USE_S3:
     DEFAULT_FILE_STORAGE = 'modelier.storage_backends.PublicMediaStorage'
 
 else:
-    STATIC_URL = '/static/'
+    STATIC_URL = '/staticfiles/'
     STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
-    MEDIA_URL = '/media/'
+    MEDIA_URL = '/mediafiles/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
 

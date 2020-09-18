@@ -14,21 +14,35 @@ services:
       - .env-prod
     depends_on:
       - db
+    networks:
+      - nginx_network
+      - database1_network
   db:
-    image: postgres:12.1-alpine
+    image: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - ./data/db:/var/lib/postgresql/data
+    networks:
+      - database1_network
+    environment:
+      - POSTGRES_PASSWORD=postgres
   nginx:
     build: ./nginx
     volumes:
       - static_volume:/usr/src/app/staticfiles
       - media_volume:/usr/src/app/mediafiles
     ports:
-      - 1337:80
+      - 80:80
     depends_on:
       - web
+    networks:
+      - nginx_network
 
 volumes:
-  postgres_data:
   static_volume:
   media_volume:
+
+networks:
+  nginx_network:
+    driver: bridge
+  database1_network:
+    driver: bridge
