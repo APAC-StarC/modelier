@@ -138,3 +138,5 @@ dmypy.json
 .env-prod
 
 src/
+tmp/
+data/
