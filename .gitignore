@@ -129,6 +129,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
 /media/
-/static/
+/app/media/
+/app/mediafiles/
+/app/static/
+/app/staticfiles/
+
+.env-prod
+
+src/
