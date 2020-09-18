@@ -20,7 +20,7 @@ services:
   db:
     image: postgres
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - db_volume:/var/lib/postgresql/data
     networks:
       - database1_network
     environment:
@@ -38,6 +38,7 @@ services:
       - nginx_network
 
 volumes:
+  db_volume:
   static_volume:
   media_volume:
 
