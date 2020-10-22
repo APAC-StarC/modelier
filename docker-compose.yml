@@ -38,9 +38,9 @@ services:
       - nginx_network
 
 volumes:
-  db_volume:
-  static_volume:
-  media_volume:
+  db_volume:~/modelier-data/db
+  static_volume:~/modelier-data/staticfiles
+  media_volume:~/modelier-data/mediafiles
 
 networks:
   nginx_network:
