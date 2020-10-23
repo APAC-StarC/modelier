@@ -30,6 +30,7 @@ services:
     volumes:
       - static_volume:/usr/src/app/staticfiles
       - media_volume:/usr/src/app/mediafiles
+      - /var/www/html/models:/usr/src/app/models
     ports:
       - 80:80
     depends_on:

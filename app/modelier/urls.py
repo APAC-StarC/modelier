@@ -24,7 +24,7 @@ def hello(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('models/', include('pointclouds.urls')),
-    path('/', hello)
+    path('', hello)
 ]
 
 if settings.DEBUG:
