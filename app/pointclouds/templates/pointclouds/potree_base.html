@@ -125,6 +125,7 @@
         width: 50%;
         opacity: 0.2;
         transition: opacity 1s;
+        text-align: center;
     }
     #img-overlay-wrapper #img-container:hover {
         width: 50%;
@@ -225,6 +226,9 @@
                 loadCustomConfig(visConfig["{{ pt.jsId }}"], viewer);
             });
         {% endfor %}
+
+        loadVisConfig(visConfig, viewer);
+        console.log("loadVisConfig run");
 
         $("#img-overlay-wrapper .close").click(()=>{
             $('#img-overlay-wrapper').hide();

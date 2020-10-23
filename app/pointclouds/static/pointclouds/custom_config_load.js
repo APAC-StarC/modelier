@@ -46,13 +46,13 @@ function copyTextToClipboard(text) {
     console.error('Async: Could not copy text: ', err);
   });
 }
-function onImgClick(objId, ptConfig){
-    let position = ptConfig.images[objId].cameraPosition;
-    let target = ptConfig.images[objId].cameraTarget;
+function onImgClick(objId, imgConfig){
+    let position = imgConfig.cameraPosition;
+    let target = imgConfig.cameraTarget;
     if (position || target) {
         viewer.scene.view.setView(csvToFloatList(position), csvToFloatList(target))
     }
-    let fullImg = $(`<img src="${ptConfig.images[objId].url}" />`);
+    let fullImg = $(`<img src="${imgConfig.url}" />`);
     $('#img-container').html(fullImg);
     $('#img-overlay-wrapper').show();
 }
@@ -72,8 +72,39 @@ function loadCustomConfig(ptConfig, viewer){
         let ann = new Potree.Annotation(data);
         scene.annotations.add(ann);
     });
+    // if (Object.keys(ptConfig.images).length){
+    //     $('#img-slider').slick({
+    //         slidesToShow: 1,
+    //         slidesToScroll: 1,
+    //         verticalSwipe:true,
+    //
+    //     });
+    //
+    //     Object.entries(ptConfig.images).forEach(([id, obj]) => {
+    //       let slide = $(`<div class="slide-box" data-obj-id="${obj.id}"><img class="slide-image" src="${obj.url}" /><h6 class="slide-title">${obj.title}</h6></div>`);
+    //           slide.click((e)=>{
+    //               let objId = $(e.currentTarget).data('obj-id');
+    //               onImgClick(objId, ptConfig);
+    //           });
+    //           $('#img-slider').slick('slickAdd', slide);
+    //     });
+    // }else{
+    //     $('#img-slider-container').hide();
+    // }
+}
+function loadVisConfig(visConfig, viewer){
+    let allImages = [];
+    console.log(visConfig);
+    Object.keys(visConfig).forEach((ptId)=> {
+        if (visConfig[ptId].images) {
+            Object.entries(visConfig[ptId].images).forEach(([id, obj]) => {
+                console.log(id, obj)
+                allImages.push({obj: obj, imgConfig: visConfig[ptId].images[id]});
+            });
+        }
+    });
 
-    if (ptConfig.images){
+    if (allImages.length){
         $('#img-slider').slick({
             slidesToShow: 1,
             slidesToScroll: 1,
@@ -81,16 +112,15 @@ function loadCustomConfig(ptConfig, viewer){
 
         });
 
-        Object.entries(ptConfig.images).forEach(([id, obj]) => {
-          let slide = $(`<div class="slide-box" data-obj-id="${obj.id}"><img class="slide-image" src="${obj.url}" /><h6 class="slide-title">${obj.title}</h6></div>`);
+        allImages.forEach((entry) => {
+          let slide = $(`<div class="slide-box" data-obj-id="${entry.obj.id}"><img class="slide-image" src="${entry.obj.url}" /><h6 class="slide-title">${entry.obj.title}</h6></div>`);
               slide.click((e)=>{
                   let objId = $(e.currentTarget).data('obj-id');
-                  onImgClick(objId, ptConfig);
+                  onImgClick(objId, entry.imgConfig);
               });
               $('#img-slider').slick('slickAdd', slide);
         });
     }else{
         $('#img-slider-container').hide();
     }
-
 }
