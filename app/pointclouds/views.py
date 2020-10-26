@@ -19,5 +19,5 @@ def potree_viewer(request, id, vtype):
 def admin_model_preview(request,id):
     original = PotreeModel.objects.get(pk=id)
     pointclouds = [original]
-    vis = PotreeVisualization(title="Model Preview", tools_enabled=False, pointclouds_override=pointclouds)
+    vis = PotreeVisualization(title="Model Preview", tools_enabled=True, pointclouds_override=pointclouds)
     return render(request, 'admin/pointclouds/potreemodel/potree_preview.html', {'vis':vis,'pointclouds': pointclouds})

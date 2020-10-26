@@ -43,6 +43,18 @@
 <script type="text/javascript" src="{% static 'slick/slick.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'pointclouds/custom_config_load.js' %}"></script>
 <style>
+    body, html {
+    height: 100%;
+    margin: 0;
+    }
+    .fullScreen {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
     #img-slider-container {
         position: absolute;
         bottom: 5px;

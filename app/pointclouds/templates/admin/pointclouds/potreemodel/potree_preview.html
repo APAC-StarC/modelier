@@ -1,24 +1,44 @@
 {% extends 'pointclouds/potree_base.html' %}
 
 {% block content %}
-{{block.super}}
+    {{ block.super }}
     <style>
+        .action-btn{
+            cursor: pointer;
+        }
         .action-btn svg {
-            width: 20px;
+            width: 15px;
             height: 20px;
             fill: #384348;
             display: inline-block;
             vertical-align: middle;
         }
-        #hotspot_details .log{
-            color:red;
+
+        #hotspot_details .log {
+            color: red;
             font-size: 10px;
         }
     </style>
-    <div id="hotspot_details" style="position: absolute; top:10px; left:10px; z-index:2;">
+    <div id="hotspot_details" style="position: absolute; top:10px; right:10px; z-index:2;">
+        <button id="go-fullscreen-btn" title="Toggle fullscreen" class="action-btn">
+            <svg viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink">
 
-        <button id="copy-position-btn" title="Copy camera position to clipboard" class="action-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M11 12h6v-1l-3-1V2l3-1V0H3v1l3 1v8l-3 1v1h6v7l1 1 1-1v-7z"/></svg></button>
-        <button id="copy-target-btn" title="Copy camera target to clipboard" class="action-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M17.94 11H13V9h4.94A8 8 0 0 0 11 2.06V7H9V2.06A8 8 0 0 0 2.06 9H7v2H2.06A8 8 0 0 0 9 17.94V13h2v4.94A8 8 0 0 0 17.94 11zM10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/></svg></button>
+                <path d="M4.20710678,17.2071068 L7,20 L0,20 L0,13 L2.79289322,15.7928932 L7.12132034,11.4644661 L8.53553391,12.8786797 L4.20710678,17.2071068 Z M15.7928932,2.79289322 L13,0 L20,0 L20,7 L17.2071068,4.20710678 L12.8786797,8.53553391 L11.4644661,7.12132034 L15.7928932,2.79289322 Z M15.7928932,17.2071068 L13,20 L20,20 L20,13 L17.2071068,15.7928932 L12.8786797,11.4644661 L11.4644661,12.8786797 L15.7928932,17.2071068 Z M4.20710678,2.79289322 L7,0 L0,0 L0,7 L2.79289322,4.20710678 L7.12132034,8.53553391 L8.53553391,7.12132034 L4.20710678,2.79289322 Z"
+                      id="Combined-Shape"></path>
+
+            </svg>
+        </button>
+        <button id="copy-position-btn" title="Copy camera position to clipboard" class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M11 12h6v-1l-3-1V2l3-1V0H3v1l3 1v8l-3 1v1h6v7l1 1 1-1v-7z"/>
+            </svg>
+        </button>
+        <button id="copy-target-btn" title="Copy camera target to clipboard" class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M17.94 11H13V9h4.94A8 8 0 0 0 11 2.06V7H9V2.06A8 8 0 0 0 2.06 9H7v2H2.06A8 8 0 0 0 9 17.94V13h2v4.94A8 8 0 0 0 17.94 11zM10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/>
+            </svg>
+        </button>
         <div class="log"></div>
     </div>
 {% endblock %}
@@ -27,58 +47,71 @@
     {{ block.super }}
 
     <script>
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
 
-        $("#copy-position-btn").click(()=>{
+        $("#go-fullscreen-btn").click(() => {
+            toggleFullScreen();
+        });
+        $("#copy-position-btn").click(() => {
             let cameraPositionStr = window.viewer.scene.view.position.toArray().toString();
             copyTextToClipboard(cameraPositionStr);
-            $("#hotspot_details .log").html("Copied position " +cameraPositionStr);
-            $("#hotspot_details .log").hide(1000, function() {
+            $("#hotspot_details .log").html("Copied position " + cameraPositionStr);
+            $("#hotspot_details .log").hide(1000, function () {
                 $("#hotspot_details .log").html("");
                 $("#hotspot_details .log").show();
-              });
+            });
         });
-        $("#copy-target-btn").click(()=>{
+        $("#copy-target-btn").click(() => {
             let targetStr = window.viewer.scene.view.getPivot().toArray().toString();
             copyTextToClipboard(targetStr);
-            $("#hotspot_details .log").html("Copied target " +targetStr);
-            $("#hotspot_details .log").hide(1000, function() {
+            $("#hotspot_details .log").html("Copied target " + targetStr);
+            $("#hotspot_details .log").hide(1000, function () {
                 $("#hotspot_details .log").html("");
                 $("#hotspot_details .log").show();
-              });
+            });
         });
     </script>
     {% block comment %}
-    <script>
-        (function() {
-            document.onclick = handleMouseClick;
-            function handleMouseClick(event) {
-                var eventDoc, doc, body;
-                if (event.target.id == 'hotspot_details' || event.target.id == 'img-slider'){
-                    return false;
+        <script>
+            (function () {
+                document.onclick = handleMouseClick;
+
+                function handleMouseClick(event) {
+                    var eventDoc, doc, body;
+                    if (event.target.id == 'hotspot_details' || event.target.id == 'img-slider') {
+                        return false;
+                    }
+
+                    event = event || window.event; // IE-ism
+
+                    // If pageX/Y aren't available and clientX/Y are,
+                    // calculate pageX/Y - logic taken from jQuery.
+                    // (This is to support old IE)
+                    if (event.pageX == null && event.clientX != null) {
+                        eventDoc = (event.target && event.target.ownerDocument) || document;
+                        doc = eventDoc.documentElement;
+                        body = eventDoc.body;
+
+                        event.pageX = event.clientX +
+                            (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                            (doc && doc.clientLeft || body && body.clientLeft || 0);
+                        event.pageY = event.clientY +
+                            (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                            (doc && doc.clientTop || body && body.clientTop || 0);
+                    }
+
+                    // Use event.pageX / event.pageY here
+                    //console.log(event.pageX, event.pageY);
                 }
-
-                event = event || window.event; // IE-ism
-
-                // If pageX/Y aren't available and clientX/Y are,
-                // calculate pageX/Y - logic taken from jQuery.
-                // (This is to support old IE)
-                if (event.pageX == null && event.clientX != null) {
-                    eventDoc = (event.target && event.target.ownerDocument) || document;
-                    doc = eventDoc.documentElement;
-                    body = eventDoc.body;
-
-                    event.pageX = event.clientX +
-                      (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
-                      (doc && doc.clientLeft || body && body.clientLeft || 0);
-                    event.pageY = event.clientY +
-                      (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
-                      (doc && doc.clientTop  || body && body.clientTop  || 0 );
-                }
-
-                // Use event.pageX / event.pageY here
-                //console.log(event.pageX, event.pageY);
-            }
-        })();
-    </script>
+            })();
+        </script>
     {% endblock %}
 {% endblock %}
