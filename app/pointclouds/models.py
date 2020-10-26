@@ -92,6 +92,7 @@ class PotreeVisualization(models.Model):
     show_filters = models.BooleanField(default=True)
     show_about = models.BooleanField(default=True)
 
+    show_gallery = models.BooleanField(default=True, verbose_name="Show photo gallery")
     # Branding
     collaborators = models.ManyToManyField('collaborators.Collaborator', through='PotreeVisualizationCollaborator')
     background_color = ColorField(default='#FF0000')

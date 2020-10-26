@@ -85,15 +85,18 @@ class PotreeVisualizationAdmin(admin.ModelAdmin):
         }),
         ('General Settings', {
             'classes': ('suit-tab', 'suit-tab-settings',),
-            'fields': ["tools_enabled","show_appearance","show_tools","show_scene","show_filters","show_about"]}),
+            'fields': ["tools_enabled","show_gallery",]}),
+        ('Potree Tools Settings', {
+            'classes': ('suit-tab', 'suit-tab-potreetools',),
+            'fields': ["show_appearance", "show_tools", "show_scene", "show_filters",
+                       "show_about"]}),
 
-
-        ('Initialization settings', {
-            'classes': ('suit-tab', 'suit-tab-settings',),
-            'fields': ["initial_fov", "initial_opacity", "initial_edl_enabled",
-                       "initial_edl_radius", "initial_edl_strength", "initial_point_budget",
-                       "initial_show_bounding_box", "initial_material", "initial_point_sizing", "initial_quality",
-                       "initial_position", "initial_target", "initial_background", ]}),
+        # ('Initialization settings', {
+        #     'classes': ('suit-tab', 'suit-tab-initsettings',),
+        #     'fields': ["initial_fov", "initial_opacity", "initial_edl_enabled",
+        #                "initial_edl_radius", "initial_edl_strength", "initial_point_budget",
+        #                "initial_show_bounding_box", "initial_material", "initial_point_sizing", "initial_quality",
+        #                "initial_position", "initial_target", "initial_background", ]}),
 
         ('Point Clouds', {
             'classes': ('suit-tab', 'suit-tab-pointclouds',),
@@ -108,5 +111,7 @@ class PotreeVisualizationAdmin(admin.ModelAdmin):
 
     suit_form_tabs = (('general', 'General'),
                       ('pointclouds', 'Point Clouds'),
-                      ('settings', 'Viewer settings'),
+                      ('settings', 'General settings'),
+                      #('initsettings','Visualization load settings'),
+                      ('potreetools',"Potree settings"),
                       ('branding','Branding'))
