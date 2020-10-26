@@ -1,52 +1,59 @@
-function csvToFloatList(param){
+function csvToFloatList(param) {
     let parts = param.split(',');
-    if (!parts.length){
+    if (!parts.length) {
         return null;
     }
-    let res = parts.map((pt)=>{return parseFloat(pt)});
+    let res = parts.map((pt) => {
+        return parseFloat(pt)
+    });
     return res;
 }
-function floatListToPoint(lst){
-    return {x:lst[0], y:lst[1], z:lst[2]}
+
+function floatListToPoint(lst) {
+    return {x: lst[0], y: lst[1], z: lst[2]}
 }
-function pointToString(point){
+
+function pointToString(point) {
     return "" + point.x + ", " + point.y + ", " + point.z;
 }
+
 function fallbackCopyTextToClipboard(text) {
-  var textArea = document.createElement("textarea");
-  textArea.value = text;
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
 
-  // Avoid scrolling to bottom
-  textArea.style.top = "0";
-  textArea.style.left = "0";
-  textArea.style.position = "fixed";
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
 
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
 
-  try {
-    var successful = document.execCommand('copy');
-    var msg = successful ? 'successful' : 'unsuccessful';
-    console.log('Fallback: Copying text command was ' + msg);
-  } catch (err) {
-    console.error('Fallback: Oops, unable to copy', err);
-  }
+    try {
+        var successful = document.execCommand('copy');
+        var msg = successful ? 'successful' : 'unsuccessful';
+        console.log('Fallback: Copying text command was ' + msg);
+    } catch (err) {
+        console.error('Fallback: Oops, unable to copy', err);
+    }
 
-  document.body.removeChild(textArea);
+    document.body.removeChild(textArea);
 }
+
 function copyTextToClipboard(text) {
-  if (!navigator.clipboard) {
-    fallbackCopyTextToClipboard(text);
-    return;
-  }
-  navigator.clipboard.writeText(text).then(function() {
-    console.log('Async: Copying to clipboard was successful!');
-  }, function(err) {
-    console.error('Async: Could not copy text: ', err);
-  });
+    if (!navigator.clipboard) {
+        fallbackCopyTextToClipboard(text);
+        return;
+    }
+    navigator.clipboard.writeText(text).then(function () {
+        console.log('Async: Copying to clipboard was successful!');
+    }, function (err) {
+        console.error('Async: Could not copy text: ', err);
+    });
 }
-function onImgClick(objId, imgConfig){
+
+function onImgClick(objId, imgConfig) {
     let position = imgConfig.cameraPosition;
     let target = imgConfig.cameraTarget;
     if (position || target) {
@@ -57,17 +64,17 @@ function onImgClick(objId, imgConfig){
     $('#img-overlay-wrapper').show();
 }
 
-function loadCustomConfig(ptConfig, viewer){
+function loadCustomConfig(ptConfig, viewer) {
     let scene = viewer.scene;
-    ptConfig.annotations.forEach((obj)=>{
+    ptConfig.annotations.forEach((obj) => {
         let data = {
             position: csvToFloatList(obj.position),
             title: obj.title,
             description: obj.body
         };
-        if (obj.cameraPosition && obj.cameraTarget){
-            data.cameraPosition= csvToFloatList(obj.cameraPosition);
-            data.cameraTarget= csvToFloatList(obj.cameraTarget);
+        if (obj.cameraPosition && obj.cameraTarget) {
+            data.cameraPosition = csvToFloatList(obj.cameraPosition);
+            data.cameraTarget = csvToFloatList(obj.cameraTarget);
         }
         let ann = new Potree.Annotation(data);
         scene.annotations.add(ann);
@@ -92,35 +99,34 @@ function loadCustomConfig(ptConfig, viewer){
     //     $('#img-slider-container').hide();
     // }
 }
-function loadVisConfig(visConfig, viewer){
+
+function loadVisConfig(visConfig, viewer) {
     let allImages = [];
-    console.log(visConfig);
-    Object.keys(visConfig).forEach((ptId)=> {
+    Object.keys(visConfig).forEach((ptId) => {
         if (visConfig[ptId].images) {
             Object.entries(visConfig[ptId].images).forEach(([id, obj]) => {
-                console.log(id, obj)
                 allImages.push({obj: obj, imgConfig: visConfig[ptId].images[id]});
             });
         }
     });
 
-    if (allImages.length){
+    if (allImages.length) {
         $('#img-slider').slick({
             slidesToShow: 1,
             slidesToScroll: 1,
-            verticalSwipe:true,
+            verticalSwipe: true,
 
         });
 
         allImages.forEach((entry) => {
-          let slide = $(`<div class="slide-box" data-obj-id="${entry.obj.id}"><img class="slide-image" src="${entry.obj.url}" /><h6 class="slide-title">${entry.obj.title}</h6></div>`);
-              slide.click((e)=>{
-                  let objId = $(e.currentTarget).data('obj-id');
-                  onImgClick(objId, entry.imgConfig);
-              });
-              $('#img-slider').slick('slickAdd', slide);
+            let slide = $(`<div class="slide-box" data-obj-id="${entry.obj.id}"><img class="slide-image" src="${entry.obj.url}" /><h6 class="slide-title">${entry.obj.title}</h6></div>`);
+            slide.click((e) => {
+                let objId = $(e.currentTarget).data('obj-id');
+                onImgClick(objId, entry.imgConfig);
+            });
+            $('#img-slider').slick('slickAdd', slide);
         });
-    }else{
+    } else {
         $('#img-slider-container').hide();
     }
 }
