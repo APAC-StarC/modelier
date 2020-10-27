@@ -236,6 +236,7 @@
             });
         {% endfor %}
 
+
         loadVisConfig(visConfig, viewer);
         console.log("loadVisConfig run");
 
@@ -245,7 +246,6 @@
 
         $("body").on('keydown', (event)=>{
             event = event || window.event;
-            console.log("Keydown", event);
             if(event.keyCode==16) {
                 $(event.currentTarget).addClass('shift-down');
             }
@@ -253,7 +253,6 @@
         });
         $("body").on('keyup', (event)=>{
             event = event || window.event;
-            console.log("Keyup", event);
             if(event.keyCode==16) {
                 $(event.currentTarget).removeClass('shift-down');
             }
