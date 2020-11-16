@@ -17,6 +17,9 @@ services:
     networks:
       - nginx_network
       - database1_network
+    deploy:
+      restart_policy:
+        condition: any
   db:
     image: postgres
     volumes:
@@ -25,6 +28,9 @@ services:
       - database1_network
     environment:
       - POSTGRES_PASSWORD=postgres
+    deploy:
+      restart_policy:
+        condition: any
   nginx:
     build: ./nginx
     volumes:
@@ -39,6 +45,9 @@ services:
       - web
     networks:
       - nginx_network
+    deploy:
+      restart_policy:
+        condition: any
 
 volumes:
   db_volume:
