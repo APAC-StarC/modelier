@@ -55,7 +55,7 @@ class PotreeModelAdmin(admin.ModelAdmin):
         }),
         ('General Settings', {
             'classes': ('suit-tab', 'suit-tab-modelconfig',),
-            'fields': ["material_point_size_type", "material_shape"]}),
+            'fields': ["material_point_size_type", "material_shape", "material_active_attribute_name", "material_active_attribute_name_color"]}),
 
         # ('Hotspots', {
         #     'classes': ('suit-tab', 'suit-tab-hotspots',),

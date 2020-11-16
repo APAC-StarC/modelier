@@ -230,6 +230,10 @@
                 material.size = 1;
                 material.shape ={{ pt.material_shape }};
                 material.pointSizeType = {{ pt.material_point_size_type }};
+                material.activeAttributeName = {{ pt.material_active_attribute_name }};
+                {% if pt.material_active_attribute_name == 'color' %}
+                    material.color = new THREE.Color("{{ material_active_attribute_name_color }}");
+                {% endif %}
                 viewer.scene.addPointCloud(pointcloud);
                 viewer.fitToScreen();
                 loadCustomConfig(visConfig["{{ pt.jsId }}"], viewer);

@@ -16,3 +16,9 @@ class PointShape(models.IntegerChoices):
     SQUARE = 0
     CIRCLE = 1
     PARABOLOID = 2
+
+class ActiveAttributeName(models.TextChoices):
+    RGBA = 'rgba'
+    COLOR = 'color'
+    INTENSITY = 'intensity'
+    CLASSIFICATION = 'classification'
