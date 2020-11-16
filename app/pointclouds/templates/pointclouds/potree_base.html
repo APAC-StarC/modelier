@@ -181,9 +181,18 @@
 
         window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
 
-        viewer.setEDLEnabled(true);
+
         viewer.setFOV(60);
         viewer.setPointBudget(1 * 1000 * 1000);
+        {% if vis.initial_edl_enabled %}
+            viewer.setEDLEnabled(true);
+            {% if vis.initial_edl_radius %}
+            viewer.setEDLRadius({{vis.initial_edl_radius}});
+            {% endif %}
+            {% if vis.initial_edl_strength %}
+            viewer.setEDLStrength({{vis.initial_edl_strength}});
+            {% endif %}
+        {% endif %}
         viewer.setMinNodeSize(0);
         viewer.loadSettingsFromURL();
 

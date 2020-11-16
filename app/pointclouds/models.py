@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 from django.contrib.sites.models import Site
 from django.urls import reverse
 from django.utils.html import mark_safe
+from django.core.validators import MinValueValidator, MaxValueValidator
 from colorfield.fields import ColorField
 from ckeditor.fields import RichTextField
 from .potree_enums import PointSizeType, PointShape, ActiveAttributeName
@@ -81,8 +82,8 @@ class PotreeVisualization(models.Model):
     initial_opacity = models.FloatField(blank=True, null=True,
                                         validators=[MinValueValidator(limit_value=0), MaxValueValidator(limit_value=1)])
     initial_edl_enabled = models.BooleanField(default=True)
-    initial_edl_radius = models.FloatField(blank=True, null=True)
-    initial_edl_strength = models.FloatField(blank=True, null=True)
+    initial_edl_radius = models.FloatField(blank=True, null=True, validators=[MinValueValidator(1.0),MaxValueValidator(4.0)])
+    initial_edl_strength = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0.0),MaxValueValidator(5.0)])
     initial_point_budget = models.FloatField(blank=True, null=True)
     initial_show_bounding_box = models.BooleanField(default=False)
     initial_material = models.CharField(max_length=254, blank=True)

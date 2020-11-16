@@ -97,6 +97,9 @@ class PotreeVisualizationAdmin(admin.ModelAdmin):
         #                "initial_edl_radius", "initial_edl_strength", "initial_point_budget",
         #                "initial_show_bounding_box", "initial_material", "initial_point_sizing", "initial_quality",
         #                "initial_position", "initial_target", "initial_background", ]}),
+        ('Initialization settings', {
+            'classes': ('suit-tab', 'suit-tab-initsettings',),
+            'fields': ["initial_edl_enabled", "initial_edl_radius", "initial_edl_strength",]}),
 
         ('Point Clouds', {
             'classes': ('suit-tab', 'suit-tab-pointclouds',),
@@ -112,6 +115,6 @@ class PotreeVisualizationAdmin(admin.ModelAdmin):
     suit_form_tabs = (('general', 'General'),
                       ('pointclouds', 'Point Clouds'),
                       ('settings', 'General settings'),
-                      #('initsettings','Visualization load settings'),
+                      ('initsettings','Visualization load settings'),
                       ('potreetools',"Potree settings"),
                       ('branding','Branding'))
