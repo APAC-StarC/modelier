@@ -31,7 +31,7 @@ services:
       - static_volume:/usr/src/app/staticfiles
       - media_volume:/usr/src/app/mediafiles
       - type: bind
-        source: /var/www/html/models
+        source: /var/www/html/EpEMERA/sites/ephemera/ihat/models
         target: /opt/models
     ports:
       - 80:80
