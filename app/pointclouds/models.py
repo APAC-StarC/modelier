@@ -8,33 +8,40 @@ from django.urls import reverse
 from django.utils.html import mark_safe
 from colorfield.fields import ColorField
 from ckeditor.fields import RichTextField
-from .potree_enums import PointSizeType, PointShape
+from .potree_enums import PointSizeType, PointShape, ActiveAttributeName
+
+
 class PotreeModel(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=254, help_text="Identifier for the model - Internal Use")
     pointcloud_url = models.CharField(max_length=254,
                                       help_text="Full url for accessing the root folder of the point cloud cloud.js")
 
-    material_point_size_type = models.PositiveSmallIntegerField(choices=PointSizeType.choices, default=PointSizeType.ADAPTIVE)
+    material_point_size_type = models.PositiveSmallIntegerField(choices=PointSizeType.choices,
+                                                                default=PointSizeType.ADAPTIVE)
     material_shape = models.PositiveSmallIntegerField(choices=PointShape.choices, default=PointShape.CIRCLE)
-    #material_active_attribute_name  =models.CharField()
+    material_active_attribute_name = models.CharField(choices=ActiveAttributeName.choices,
+                                                      default=ActiveAttributeName.RGBA, max_length=50)
+    material_active_attribute_name_color = ColorField(default='#E2DDDD')
+
     def __str__(self):
         return self.title
 
     @property
     def jsId(self):
         return str(self.id.hex)
+
     def json_config(self):
         config = {
             "annotations": [{
                 "id": x.id,
-                "title":x.title,
-                "body":x.body,
-                "position":x.position,
-                "cameraPosition":x.camera_position,
-                "cameraTarget":x.camera_target,
+                "title": x.title,
+                "body": x.body,
+                "position": x.position,
+                "cameraPosition": x.camera_position,
+                "cameraTarget": x.camera_target,
             } for x in self.annotations.all()],
-            "images": {x.id:{
+            "images": {x.id: {
                 "id": x.id,
                 "title": x.title,
                 "url": x.img.url,
@@ -43,6 +50,7 @@ class PotreeModel(models.Model):
             } for x in self.images.all()},
         }
         return config
+
 
 BACKGROUND_OPTIONS = (
     ('', 'None'),
@@ -62,7 +70,6 @@ class PotreeVisualization(models.Model):
         pointclouds_override = kwargs.pop('pointclouds_override', None)
         super(PotreeVisualization, self).__init__(*args, **kwargs)
         self.pointclouds_override = pointclouds_override
-
 
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
@@ -97,10 +104,9 @@ class PotreeVisualization(models.Model):
     collaborators = models.ManyToManyField('collaborators.Collaborator', through='PotreeVisualizationCollaborator')
     background_color = ColorField(default='#FF0000')
     navbar_height = models.PositiveSmallIntegerField(default=80, help_text="Navbar height in pixels")
-    copyright_notice =  RichTextField(config_name='basic_editor', blank=True)
+    copyright_notice = RichTextField(config_name='basic_editor', blank=True)
     facebook_url = models.URLField(blank=True)
     twitter_url = models.URLField(blank=True)
-
 
     def get_url_init_params(self):
         params = {}
@@ -155,8 +161,10 @@ class PotreeVisualization(models.Model):
             pts = self.pointclouds_override
         else:
             pts = self.pointclouds.all()
-        config = { pt.jsId:pt.json_config() for pt in pts}
+        config = {pt.jsId: pt.json_config() for pt in pts}
         return config
+
+
 class PotreeVisualizationCollaborator(models.Model):
     '''
     Intermediate table for collaborators M2M fields on PotreeVisualization, to hold ordering etc..
@@ -169,29 +177,32 @@ class PotreeVisualizationCollaborator(models.Model):
         return f"Collaborator"
 
 
-
 class PotreeHotspot(models.Model):
     title = models.CharField(max_length=254)
-    camera_position = models.CharField(max_length=254,blank=True, help_text="x,y,z using comma separated values")
-    camera_target = models.CharField(max_length=254,blank=True, help_text="x,y,z using comma separated values")
-
+    camera_position = models.CharField(max_length=254, blank=True, help_text="x,y,z using comma separated values")
+    camera_target = models.CharField(max_length=254, blank=True, help_text="x,y,z using comma separated values")
 
     def __unicode__(self):
         return self.title
 
     class Meta:
-        abstract=True
+        abstract = True
+
 
 class PotreeAnnotation(PotreeHotspot):
     order = models.PositiveIntegerField(default=0)
     body = RichTextField(config_name='annotation_editor', blank=True)
     position = models.CharField(max_length=254, blank=True, help_text="x,y,z using comma separated values")
     pointcloud = models.ForeignKey(PotreeModel, on_delete=models.CASCADE, related_name='annotations')
+
     class Meta:
         ordering = ('order',)
+
+
 class PotreeImage(PotreeHotspot):
     order = models.PositiveIntegerField(default=0)
     img = models.ImageField(upload_to='galleries')
     pointcloud = models.ForeignKey(PotreeModel, on_delete=models.CASCADE, related_name='images')
+
     class Meta:
         ordering = ('order',)
