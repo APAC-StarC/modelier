@@ -1,0 +1,5 @@
+{% if original.pk %}
+<div style="overflow: auto; width:100%; height:510px;">
+    <iframe src="{% url 'potree_admin_visualization_management' original.pk %}" width="100%" height="500px" allowfullscreen></iframe>
+</div>
+{% endif %}

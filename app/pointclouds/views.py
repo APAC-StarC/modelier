@@ -1,7 +1,8 @@
 from django.shortcuts import render, Http404
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth.decorators import login_required
-from .models import PotreeVisualization, PotreeModel
+from django.contrib.admin.views.decorators import staff_member_required
+from .models import PotreeVisualization, PotreeModel, Visualization
 
 @xframe_options_exempt
 def potree_viewer(request, id, vtype):
@@ -21,3 +22,20 @@ def admin_model_preview(request,id):
     pointclouds = [original]
     vis = PotreeVisualization(title="Model Preview", tools_enabled=True, pointclouds_override=pointclouds)
     return render(request, 'admin/pointclouds/potreemodel/potree_preview.html', {'vis':vis,'pointclouds': pointclouds})
+
+
+
+@staff_member_required
+def admin_vis_save_config(request, id):
+    original = PotreeVisualization.objects.get(pk=id)
+    pointclouds = [original]
+    vis = PotreeVisualization(title="Model Preview", tools_enabled=True, pointclouds_override=pointclouds)
+    return render(request, 'admin/pointclouds/potreemodel/potree_preview.html', {'vis':vis,'pointclouds': pointclouds})
+
+@staff_member_required
+def admin_visualization_management(request,id):
+    vis = Visualization.objects.get(pk=id)
+    return render(request, 'admin/pointclouds/visualization/admin_management.html', {'vis':vis})
+
+
+

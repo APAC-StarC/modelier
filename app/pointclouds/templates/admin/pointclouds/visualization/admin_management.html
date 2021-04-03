@@ -1,0 +1,86 @@
+{% extends 'pointclouds/potree_base.html' %}
+
+{% block content %}
+    {{ block.super }}
+    <style>
+        #hotspot_details .log {
+            color: red;
+            font-size: 10px;
+        }
+    </style>
+
+{% endblock %}
+{% block hotspot_details %}
+        {{ block.super }}
+        <button id="copy-position-btn" title="Copy camera position to clipboard" class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M11 12h6v-1l-3-1V2l3-1V0H3v1l3 1v8l-3 1v1h6v7l1 1 1-1v-7z"/>
+            </svg>
+        </button>
+        <button id="copy-target-btn" title="Copy camera target to clipboard" class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M17.94 11H13V9h4.94A8 8 0 0 0 11 2.06V7H9V2.06A8 8 0 0 0 2.06 9H7v2H2.06A8 8 0 0 0 9 17.94V13h2v4.94A8 8 0 0 0 17.94 11zM10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/>
+            </svg>
+        </button>
+    <div class="log"></div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+
+    <script>
+
+        $("#copy-position-btn").click(() => {
+            let cameraPositionStr = window.viewer.scene.view.position.toArray().toString();
+            copyTextToClipboard(cameraPositionStr);
+            $("#hotspot_details .log").html("Copied position " + cameraPositionStr);
+            $("#hotspot_details .log").hide(1000, function () {
+                $("#hotspot_details .log").html("");
+                $("#hotspot_details .log").show();
+            });
+        });
+        $("#copy-target-btn").click(() => {
+            let targetStr = window.viewer.scene.view.getPivot().toArray().toString();
+            copyTextToClipboard(targetStr);
+            $("#hotspot_details .log").html("Copied target " + targetStr);
+            $("#hotspot_details .log").hide(1000, function () {
+                $("#hotspot_details .log").html("");
+                $("#hotspot_details .log").show();
+            });
+        });
+    </script>
+    {% block comment %}
+        <script>
+            (function () {
+                document.onclick = handleMouseClick;
+
+                function handleMouseClick(event) {
+                    var eventDoc, doc, body;
+                    if (event.target.id == 'hotspot_details' || event.target.id == 'img-slider') {
+                        return false;
+                    }
+
+                    event = event || window.event; // IE-ism
+
+                    // If pageX/Y aren't available and clientX/Y are,
+                    // calculate pageX/Y - logic taken from jQuery.
+                    // (This is to support old IE)
+                    if (event.pageX == null && event.clientX != null) {
+                        eventDoc = (event.target && event.target.ownerDocument) || document;
+                        doc = eventDoc.documentElement;
+                        body = eventDoc.body;
+
+                        event.pageX = event.clientX +
+                            (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                            (doc && doc.clientLeft || body && body.clientLeft || 0);
+                        event.pageY = event.clientY +
+                            (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                            (doc && doc.clientTop || body && body.clientTop || 0);
+                    }
+
+                    // Use event.pageX / event.pageY here
+                    //console.log(event.pageX, event.pageY);
+                }
+            })();
+        </script>
+    {% endblock %}
+{% endblock %}

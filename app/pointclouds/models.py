@@ -207,3 +207,25 @@ class PotreeImage(PotreeHotspot):
 
     class Meta:
         ordering = ('order',)
+
+class Visualization(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    title = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
+    subtitle = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
+
+    # toolbar sections
+    tools_enabled = models.BooleanField(default=True)
+    show_appearance = models.BooleanField(default=True)
+    show_tools = models.BooleanField(default=True)
+    show_scene = models.BooleanField(default=True)
+    show_filters = models.BooleanField(default=True)
+    show_about = models.BooleanField(default=True)
+    show_gallery = models.BooleanField(default=True, verbose_name="Show photo gallery")
+    potree_config = models.JSONField(default={})
+
+class Pointcloud(models.Model):
+    visualization = models.ForeignKey(Visualization, related_name='pointclouds', on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    title = models.CharField(max_length=254, help_text="Identifier for the model")
+    url = models.CharField(max_length=254,
+                                      help_text="Full url for accessing the root folder of the point cloud cloud.js")

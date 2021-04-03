@@ -5,4 +5,7 @@ urlpatterns = [
     path('<uuid:id>/view/',  views.potree_viewer, {'vtype': 'branded'}, name="potree_standalone"),
 
     path('admin/model-preview/<uuid:id>/',  views.admin_model_preview, name="potree_admin_model_preview"),
+
+
+    path('admin/vis-potree-management/<uuid:id>/',  views.admin_visualization_management, name="potree_admin_visualization_management"),
 ]
