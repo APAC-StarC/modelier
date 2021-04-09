@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import PotreeVisualization, PotreeModel, PotreeVisualizationCollaborator
 from .models import PotreeHotspot, PotreeAnnotation, PotreeImage
+from .models import Visualization, Pointcloud
 from suit.sortables import SortableTabularInline, SortableStackedInline
 
 # class PotreeHotspotInline(admin.TabularInline):
@@ -118,3 +119,12 @@ class PotreeVisualizationAdmin(admin.ModelAdmin):
                       ('initsettings','Visualization load settings'),
                       ('potreetools',"Potree settings"),
                       ('branding','Branding'))
+
+
+
+class PointcloudInlineAdmin(admin.TabularInline):
+    model = Pointcloud
+@admin.register(Visualization)
+class VisualizationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'title',] # 'branded_preview_link', 'preview_link', 'get_embedded_code']
+    inlines = [PointcloudInlineAdmin]

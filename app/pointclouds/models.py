@@ -82,8 +82,10 @@ class PotreeVisualization(models.Model):
     initial_opacity = models.FloatField(blank=True, null=True,
                                         validators=[MinValueValidator(limit_value=0), MaxValueValidator(limit_value=1)])
     initial_edl_enabled = models.BooleanField(default=True)
-    initial_edl_radius = models.FloatField(blank=True, null=True, validators=[MinValueValidator(1.0),MaxValueValidator(4.0)])
-    initial_edl_strength = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0.0),MaxValueValidator(5.0)])
+    initial_edl_radius = models.FloatField(blank=True, null=True,
+                                           validators=[MinValueValidator(1.0), MaxValueValidator(4.0)])
+    initial_edl_strength = models.FloatField(blank=True, null=True,
+                                             validators=[MinValueValidator(0.0), MaxValueValidator(5.0)])
     initial_point_budget = models.FloatField(blank=True, null=True)
     initial_show_bounding_box = models.BooleanField(default=False)
     initial_material = models.CharField(max_length=254, blank=True)
@@ -208,7 +210,14 @@ class PotreeImage(PotreeHotspot):
     class Meta:
         ordering = ('order',)
 
+
 class Visualization(models.Model):
+    def __init__(self, *args, **kwargs):
+
+        pointclouds_override = kwargs.pop('pointclouds_override', None)
+        super(Visualization, self).__init__(*args, **kwargs)
+        self.pointclouds_override = pointclouds_override
+
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
     subtitle = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
@@ -221,11 +230,47 @@ class Visualization(models.Model):
     show_filters = models.BooleanField(default=True)
     show_about = models.BooleanField(default=True)
     show_gallery = models.BooleanField(default=True, verbose_name="Show photo gallery")
-    potree_config = models.JSONField(default={})
+    potree_config = models.JSONField(default={}, blank=True, null=True)
+
+    def json_config(self):
+        if self.pointclouds_override:
+            pts = self.pointclouds_override
+        else:
+            pts = self.pointclouds.all()
+        config = {
+            "pointclouds": {
+                pt.jsId: pt.json_config() for pt in pts
+            },
+            "menuConf": {
+                "toolsEnabled": self.tools_enabled,
+                "showAppearance": self.show_appearance,
+                "showTools": self.show_tools,
+                "showScene": self.show_scene,
+                "showFilters": self.show_filters,
+                "showAbout": self.show_about,
+                "showGallery": self.show_gallery,
+            }
+        }
+        return config
+
 
 class Pointcloud(models.Model):
     visualization = models.ForeignKey(Visualization, related_name='pointclouds', on_delete=models.CASCADE)
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=254, help_text="Identifier for the model")
     url = models.CharField(max_length=254,
-                                      help_text="Full url for accessing the root folder of the point cloud cloud.js")
+                           help_text="Full url for accessing the root folder of the point cloud cloud.js")
+
+    @property
+    def jsId(self):
+        return str(self.id.hex)
+
+    def json_config(self):
+        config = {
+            "url": self.url,
+            "title": self.title,
+            "id": self.jsId,
+            "annotations": [],
+            "images": {},
+        }
+        return config

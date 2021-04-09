@@ -1,86 +1,236 @@
-{% extends 'pointclouds/potree_base.html' %}
+{% extends 'pointclouds/potree_base_1.7.html' %}
 
-{% block content %}
-    {{ block.super }}
-    <style>
-        #hotspot_details .log {
-            color: red;
-            font-size: 10px;
-        }
-    </style>
+{% block user_vis_menu %}
+    {% verbatim %}
+    <div id="app" class="fixed top-0 bottom-0 right-0 w-48 px-2 py-4 z-10 bg-gray-50 flex flex-col">
+        <span class="relative z-0 inline-flex shadow-sm rounded-md flex flex-wrap">
+          <button type="button" v-on:click="toggleFullScreen"
+                  class="relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+            🔛
+          </button>
+          <button type="button" v-on:click="saveInitialStateConfig"
+                  class="-ml-px relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+            💾
+          </button>
+          <button type="button" v-on:click="loadInitialStateConfig"
+                  class="-ml-px relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+              🔁
+          </button>
+        </span>
+        <div class="mt-4">
 
+            <div class="flex items-center">
+                <!-- Enabled: "bg-indigo-600", Not Enabled: "bg-gray-200" -->
+                <button type="button" v-on:click="toggleExplosion"
+                        v-bind:class="[ explosionEnabled ? 'bg-indigo-600' : 'bg-gray-200' ]"
+                        class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        aria-pressed="false" aria-labelledby="annual-billing-label">
+                    <span class="sr-only">Use setting</span>
+                    <!-- Enabled: "translate-x-5", Not Enabled: "translate-x-0" -->
+                    <span aria-hidden="true" v-bind:class="[ explosionEnabled ? 'translate-x-5' : 'translate-x-0' ]"
+                          class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"></span>
+                </button>
+                <span class="ml-3" id="annual-billing-label">
+                <span class="text-sm font-medium text-gray-900">💥 ?</span>
+              </span>
+            </div>
+
+            <div v-if="explosionEnabled">
+                <div class="mt-2 flex flex-col justify-stretch p-2 border border-blue-700">
+                    <span class="text-xs">Movement:</span>
+                    <explosion-option-item v-for="(conf, id) in visConfig.pointclouds" v-bind:conf="conf"></explosion-option-item>
+
+                    <div class="mt-4">
+                        <span class="text-xs">Explode:</span>
+                        <div class="flex items-around">
+                        <button type="button" v-on:click="explodeMinus"
+                              class="-ml-px relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                          ⬅💥
+                      </button>
+                        <button type="button" v-on:click="explodePlus"
+                              class="-ml-px relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                          💥➡
+                      </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endverbatim %}
 {% endblock %}
-{% block hotspot_details %}
-        {{ block.super }}
-        <button id="copy-position-btn" title="Copy camera position to clipboard" class="action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <path d="M11 12h6v-1l-3-1V2l3-1V0H3v1l3 1v8l-3 1v1h6v7l1 1 1-1v-7z"/>
-            </svg>
-        </button>
-        <button id="copy-target-btn" title="Copy camera target to clipboard" class="action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <path d="M17.94 11H13V9h4.94A8 8 0 0 0 11 2.06V7H9V2.06A8 8 0 0 0 2.06 9H7v2H2.06A8 8 0 0 0 9 17.94V13h2v4.94A8 8 0 0 0 17.94 11zM10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/>
-            </svg>
-        </button>
-    <div class="log"></div>
-{% endblock %}
+
+
 {% block js %}
     {{ block.super }}
 
-    <script>
+    {% verbatim %}
+    <script type="module">
+        const visConfig = JSON.parse(document.getElementById('visConfig').textContent); //Gets pointcloud json config generated from django template tag above
+        Vue.component('explosion-option-item', {
+          data: function () {
+              console.log(this.conf);
+            return {
+              direction: '',
+                conf: null,
+            }
+          },
+          props: {
+              conf:Object,
+          },
+          template: `
+            <div class="mt-2 flex flex-col items-stretch">
+                <span>{{ conf.title }}:</span>
+                <select v-model="direction">
+                    <option disabled value="">Please select</option>
+                    <option value="left">left</option>
+                    <option value="right">right</option>
+                    <option value="up">up</option>
+                    <option value="down">down</option>
+                    <option value="scale">enlarge</option>
+                    <option>do nothg</option>
+                </select>
+            </div>
+            `
+        })
+        var app = new Vue({
+            el: '#app',
+            data: {
 
-        $("#copy-position-btn").click(() => {
-            let cameraPositionStr = window.viewer.scene.view.position.toArray().toString();
-            copyTextToClipboard(cameraPositionStr);
-            $("#hotspot_details .log").html("Copied position " + cameraPositionStr);
-            $("#hotspot_details .log").hide(1000, function () {
-                $("#hotspot_details .log").html("");
-                $("#hotspot_details .log").show();
-            });
-        });
-        $("#copy-target-btn").click(() => {
-            let targetStr = window.viewer.scene.view.getPivot().toArray().toString();
-            copyTextToClipboard(targetStr);
-            $("#hotspot_details .log").html("Copied target " + targetStr);
-            $("#hotspot_details .log").hide(1000, function () {
-                $("#hotspot_details .log").html("");
-                $("#hotspot_details .log").show();
-            });
-        });
-    </script>
-    {% block comment %}
-        <script>
-            (function () {
-                document.onclick = handleMouseClick;
-
-                function handleMouseClick(event) {
-                    var eventDoc, doc, body;
-                    if (event.target.id == 'hotspot_details' || event.target.id == 'img-slider') {
-                        return false;
+                viewer: window.viewer,
+                potreeProjectConfig: null,
+                visConfig: visConfig,
+                explosionEnabled: false,
+                explosionCurrentStep:0,
+                scaleStep:1,
+                moveStep:2,
+            },
+            methods: {
+                toggleFullScreen: function () {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen();
+                    } else {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        }
                     }
+                },
+                created: function () {
+                    this.loadInitialStateConfig();
+                },
+                saveInitialStateConfig: function () {
+                    let projectData = Potree.saveProject(this.viewer);
+                    this.potreeProjectConfig = {
+                        type: "Potree",
+                        pointclouds: projectData.pointclouds,
+                        settings: projectData.settings,
+                        view: projectData.view
+                    };
 
-                    event = event || window.event; // IE-ism
-
-                    // If pageX/Y aren't available and clientX/Y are,
-                    // calculate pageX/Y - logic taken from jQuery.
-                    // (This is to support old IE)
-                    if (event.pageX == null && event.clientX != null) {
-                        eventDoc = (event.target && event.target.ownerDocument) || document;
-                        doc = eventDoc.documentElement;
-                        body = eventDoc.body;
-
-                        event.pageX = event.clientX +
-                            (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
-                            (doc && doc.clientLeft || body && body.clientLeft || 0);
-                        event.pageY = event.clientY +
-                            (doc && doc.scrollTop || body && body.scrollTop || 0) -
-                            (doc && doc.clientTop || body && body.clientTop || 0);
+                    //Save on server
+                },
+                loadInitialStateConfig: function () {
+                    const data = this.potreeProjectConfig || this.visConfig.potree_config;
+                    data.measurements = [];
+                    data.volumes = [];
+                    data.cameraAnimations = [];
+                    data.profiles = [];
+                    data.orientedImages = [];
+                    data.annotations = [];
+                    data.classification = {};
+                    /*
+                    Potree.loadSettings(this.viewer, data.settings);
+		            Potre.loadView(this.viewer, data.view);
+		            const pointcloudPromises = [];
+                    for(const pointcloud of data.pointclouds){
+                        const promise = loadPointCloud(viewer, pointcloud);
+                        pointcloudPromises.push(promise);
                     }
+                    Promise.all(pointcloudPromises);
+                     */
+                    Potree.loadProject(this.viewer, data);
 
-                    // Use event.pageX / event.pageY here
-                    //console.log(event.pageX, event.pageY);
+                    /*
+                    this.explosionEnabled = visConfig.customFeatures?.explosionEnabled;
+
+                     */
+                },
+                toggleExplosion: function () {
+                    this.explosionEnabled = !this.explosionEnabled;
+                },
+                explodeMinus: function(){
+                    this.explosionCurrentStep = this.explosionCurrentStep - 1;
+                    const step = this.explosionCurrentStep;
+                    const moveStep = this.moveStep;
+                    const scaleStep = this.scaleStep;
+                    this.viewer.scene.pointclouds.forEach(function (pt, index) {
+                        let opt;
+                        if(index == 0){
+                            opt = 'left';
+                        }else if(index == 1){
+                            opt = 'right';
+                        }else if(index == 2){
+                            opt = 'up';
+                        }
+                        console.log("moveStep", (step * moveStep), "scaleStep",1 - (step*scaleStep));
+                        if (opt === 'scale') {
+                            const scaleSize = 1 - (step*scaleStep);
+                            pt.scale.set(scaleSize, scaleSize, scaleSize);
+                        }
+                        if (opt === 'right') {
+                            pt.position.x = pt.position.x - moveStep; // pt.position.x - pt.position.x * (step * moveStep)
+                        }
+                        if (opt === 'left') {
+                            pt.position.x = pt.position.x + moveStep;
+                        }
+                        if (opt === 'up') {
+                            pt.position.y = pt.position.y - pt.position.y * (step * moveStep)
+                        }
+                        if (opt === 'down') {
+                            pt.position.y = pt.position.y + pt.position.y * (step * moveStep)
+                        }
+                    });
+                    console.log("Step is", step);
+                },
+                explodePlus: function(){
+                    this.explosionCurrentStep = this.explosionCurrentStep + 1;
+                    const step = this.explosionCurrentStep;
+                    const moveStep = this.moveStep;
+                    const scaleStep = this.scaleStep;
+                    this.viewer.scene.pointclouds.forEach(function (pt, index) {
+                        let opt;
+                        if(index == 0){
+                            opt = 'left';
+                        }else if(index == 1){
+                            opt = 'right';
+                        }else if(index == 2){
+                            opt = 'up';
+                        }
+                        const curPos = pt.position;
+                        console.log("moveStep", (step * moveStep), "scaleStep",1 + (step*scaleStep));
+                        if (opt === 'scale') {
+                            const scaleSize = 1 + (step*scaleStep);
+                            pt.scale.set(scaleSize, scaleSize, scaleSize);
+                        }
+                        if (opt === 'right') {
+                            pt.position.x = pt.position.x + moveStep;
+                        }
+                        if (opt === 'left') {
+                            pt.position.x = pt.position.x - moveStep;
+                        }
+                        if (opt === 'up') {
+                            pt.position.y = pt.position.y + pt.position.y * (step * moveStep)
+                        }
+                        if (opt === 'down') {
+                            pt.position.y = pt.position.y - pt.position.y * (step * moveStep)
+                        }
+                    });
+                    console.log("Step is", step);
+
                 }
-            })();
-        </script>
-    {% endblock %}
+
+            }
+        })
+    </script>
+    {% endverbatim %}
 {% endblock %}

@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, Http404
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth.decorators import login_required
@@ -36,6 +37,18 @@ def admin_vis_save_config(request, id):
 def admin_visualization_management(request,id):
     vis = Visualization.objects.get(pk=id)
     return render(request, 'admin/pointclouds/visualization/admin_management.html', {'vis':vis})
+
+from django.http import JsonResponse
+@staff_member_required
+def admin_update_potree_config(request,id):
+    vis = Visualization.objects.get(pk=id)
+    potree_config = json.loads(request.body)
+    if not vis.json_config:
+        vis.json_config = {}
+    vis.json_config.potree_config = potree_config
+    # JsonResponse()
+
+
 
 
 
