@@ -249,7 +249,8 @@ class Visualization(models.Model):
                 "showFilters": self.show_filters,
                 "showAbout": self.show_about,
                 "showGallery": self.show_gallery,
-            }
+            },
+            "jsConf": self.potree_config
         }
         return config
 
@@ -270,7 +271,7 @@ class Pointcloud(models.Model):
             "url": self.url,
             "title": self.title,
             "id": self.jsId,
-            "annotations": [],
-            "images": {},
+            #"annotations": [],
+            #"images": {},
         }
         return config
