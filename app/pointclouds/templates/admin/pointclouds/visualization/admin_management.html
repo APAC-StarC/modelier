@@ -1,8 +1,8 @@
 {% extends 'pointclouds/potree_base_1.7.html' %}
-
+{% load static %}
 {% block user_vis_menu %}
     {% verbatim %}
-    <div id="app" class="fixed top-0 bottom-0 right-0 w-48 px-2 py-4 z-10 bg-gray-50 flex flex-col">
+    <div class="fixed top-0 bottom-0 right-0 w-48 px-2 py-4 z-10 bg-gray-50 flex flex-col">
         <span class="relative z-0 inline-flex shadow-sm rounded-md flex flex-wrap">
           <button type="button" v-on:click="toggleFullScreen"
                   class="relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
@@ -42,8 +42,8 @@
                 <div v-if="explosionEnabled">
                     <div class="mt-2 flex flex-col justify-stretch">
                         <span class="text-xs">Movement:</span>
-                        <explosion-option-item v-for="(conf, id) in visConfig.pointclouds"
-                                               v-bind:conf="conf"></explosion-option-item>
+                        <explosion-option-item v-for="(item, ptId) in explosionSettings"
+                                               v-bind:item="item"></explosion-option-item>
 
                         <div class="mt-4">
                             <span class="text-xs">Explode:</span>
@@ -60,8 +60,17 @@
                         </div>
                     </div>
                 </div>
+                <div v-if="images">
+                    <gallery-items-player v-on:save-image-orientation="saveOrientationOnSelectedImage" v-on:image-selected="selectGalleryImage" v-bind:selected-image="selectedImage" v-bind:images="images" v-bind:gallery-items-config="galleryItemsConfig" v-bind:viewer="viewer"></gallery-items-player>
+                </div>
             </div>
-            <div class="mt-2 flex flex-col justify-stretch p-2 border border-blue-700">
+
+        </div>
+    </div>
+    {% endverbatim %}
+    {% comment %}
+    Removed sections
+    <div class="mt-2 flex flex-col justify-stretch p-2 border border-blue-700">
                 <span class="text-xs">Annotations</span>
                 <div>
                     <button type="button" v-on:click="addAnnotation"
@@ -71,45 +80,62 @@
                     <p class="text-xs" v-if="annotationWaitingClick">Click anywhere to select annotation location...</p>
                 </div>
             </div>
-        </div>
-    </div>
-    {% endverbatim %}
+    {% endcomment %}
 {% endblock %}
 
 
 {% block js %}
     {{ block.super }}
-
     {% verbatim %}
     <script type="module">
+        import * as THREE from "/staticfiles/pointclouds/potree1.7/libs/three.js/build/three.module.js";
+        import { TransformControls } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/controls/TransformControls.js';
+        import { OrbitControls } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/controls/OrbitControls.js';
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
         const visConfig = JSON.parse(document.getElementById('visConfig').textContent); //Gets pointcloud json config generated from django template tag above
+
+
+
         Vue.component('explosion-option-item', {
             data: function () {
-                console.log(this.conf);
                 return {
-                    direction: '',
-                    conf: null,
+                    item: {},
                 }
             },
-            props: {
-                conf: Object,
-            },
+            props: ['item'],
             template: `
             <div class="mt-2 flex flex-col items-stretch">
-                <span>{{ conf.title }}:</span>
-                <select v-model="direction">
+                <span>{{ item.title }}:</span>
+                <select v-model="item.direction">
                     <option disabled value="">Please select</option>
-                    <option value="left">left</option>
-                    <option value="right">right</option>
-                    <option value="up">up</option>
-                    <option value="down">down</option>
-                    <option value="scale">enlarge</option>
-                    <option>do nothg</option>
+                    <option value="left">left (-x)</option>
+                    <option value="right">right (+x)</option>
+                    <option value="back">back (-y)</option>
+                    <option value="front">front (+y)</option>
+                    <option value="down">down (-z)</option>
+                    <option value="up">up (+z)</option>
+                    <option value=''>do nothg</option>
                 </select>
             </div>
             `
-        });
-         Vue.component('annotation-item', {
+            });
+        Vue.component('annotation-item', {
             data: function () {
                 return {
                     ann: null,
@@ -129,12 +155,59 @@
                 <span>Title: {{ ann.title }}</span>
             </div>
             `
+        });
+
+
+
+        Vue.component('gallery-item-viewer', {
+            data: function () {
+                return {
+                    selectedImage: '',
+                }
+            },
+            props: ['selectedImage'],
+            template: `
+            <div id="img-overlay-wrapper">
+                <div class="flex-container">
+                    <div id="img-container">
+                        <img v-bind:src="selectedImage.url" />
+                    </div>
+                    <button class="close" v-on:click="$emit('image-closed')">close</button>
+                </div>
+            </div>
+            `
+        });
+         Vue.component('gallery-items-player', {
+            data: function () {
+                return {
+                    galleryItemsConfig: {},
+                    images:{},
+                    viewer:null,
+                    selectedImage:null,
+                }
+            },
+            props: ['images','galleryItemsConfig','viewer','selectedImage'],
+            template: `
+            <div class="mt-2 flex flex-col justify-stretch">
+                <span class="text-xs">Images:</span>
+                <div class="mt-4" v-for="(item, uid) in images">
+                    <img class="w-32 max-w-xl" v-bind:src="item.url" v-on:click="$emit('image-selected',uid)" />
+                    <span class="block text-xs mt-2 text-center">{{ item.title }}</span>
+                    <div class="mt-2" v-if="selectedImage && selectedImage.id==uid">
+                        <button v-on:click="$emit('save-image-orientation',uid)">Save orientation</button>
+                    </div>
+                </div>
+            </div>
+            `
         })
         var app = new Vue({
             el: '#app',
             data: {
-
                 viewer: window.viewer,
+                scene: null,
+                orbitingLocked:false, //If true, models do not rotate
+                initialOrbitControls: viewer.orbitControls,
+                currentOrbitControls: viewer.orbitControls,
                 visConfig: visConfig,
                 potreeProjectConfig: null,
                 explosionEnabled: false,
@@ -142,10 +215,84 @@
                 scaleStep: 1,
                 moveStep: 2,
                 annotationWaitingClick:false,
+                explosionSettings:[],
+                images:{},
+                galleryItemsConfig:{},
+                selectedImage:null,
+                ptPotreeReferences:{}
             },
+            created: function () {
+                let _this = this;
+                this.loadInitialStateConfig();
+                for (const [ptId, ptConf] of Object.entries(visConfig.pointclouds)) {
+                    Potree.loadPointCloud(ptConf.url, ptConf.title, function (e) {
+                        let pointcloud = e.pointcloud;
+                        _this.ptPotreeReferences[ptId] = pointcloud;
+                        viewer.scene.addPointCloud(pointcloud);
+                        viewer.fitToScreen();
+                        _this.initializeExplosionIfNewModel(ptId);
+                    });
+                }
+
+                const axesHelper = new THREE.AxesHelper( 5 );
+                viewer.scene.scene.add( axesHelper ); // Potree saves the THREEJs scene under a scene ref in the Potree scene
+                this.orbitControls = viewer.getControls();
+                window.addEventListener('keydown', this.keyDown);
+                window.app = this;
+            },
+
             methods: {
-                created: function () {
-                    this.loadInitialStateConfig();
+                keyDown:function (e){
+                    const rot = 0.01;
+                    const zom = 0.05
+                    const mov = 0.001;
+                    switch(e.code) {
+                        case "KeyS":
+                        case "ArrowDown":
+                          // Handle "back"
+                          //this.orbitControls.panDelta.x += l;
+		                  //this.orbitControls.panDelta.y += l;
+                          this.orbitControls.pitchDelta += rot;
+                          break;
+                        case "KeyW":
+                        case "ArrowUp":
+                          // Handle "forward"
+                          //this.orbitControls.panDelta.x -= l;
+		                  //this.orbitControls.panDelta.y -= l;
+		                  this.orbitControls.pitchDelta -= rot;
+                          break;
+                        case "KeyA":
+                        case "ArrowLeft":
+                          // Handle "turn left"
+                          this.orbitControls.yawDelta -= rot;
+		                  //this.orbitControls.pitchDelta -= l;
+                          break;
+                        case "KeyD":
+                        case "ArrowRight":
+                          // Handle "turn right"
+                          this.orbitControls.yawDelta += rot;
+		                  //this.orbitControls.pitchDelta += l;
+                          break;
+                        case "KeyQ":
+                          this.orbitControls.panDelta.y += mov;
+                          break;
+                        case "KeyE":
+                          this.orbitControls.panDelta.y -= mov;
+                          break;
+                        case "KeyZ":
+                          this.orbitControls.panDelta.x -= mov;
+                          break;
+                        case "KeyC":
+                          this.orbitControls.panDelta.x += mov;
+                          break;
+                        case "KeyR":
+                          this.orbitControls.radiusDelta += zom;
+                          break;
+                        case "KeyF":
+                          this.orbitControls.radiusDelta -= zom;
+                          break;
+                      }
+                      //this.orbitControls.update(0.01);
                 },
                 toggleFullScreen: function () {
                     if (!document.fullscreenElement) {
@@ -164,9 +311,23 @@
                         "potree": this.potreeProjectConfig,
                         "customFeatures":{
                             "explosionEnabled": this.explosionEnabled,
-                            "explosionSettings":{}
+                            "explosionSettings":this.explosionSettings,
+                            "galleryItemsSettings": this.galleryItemsConfig
                         }
                     }
+                    const url = 'config-update';
+                    const request = new Request(
+                        url,
+                        {headers: {'X-CSRFToken': csrftoken}}
+                    );
+                    fetch(request, {
+                        method: 'POST',
+                        body: JSON.stringify(dataToSave),
+                        mode: 'same-origin'  // Do not send CSRF token to another domain.
+                    }).then(function(response) {
+                        console.log("Done saving on server")
+                    });
+
                 },
                 saveInitialStateConfig: function () {
                     this.potreeProjectConfig = Potree.saveProject(this.viewer);
@@ -174,9 +335,13 @@
                     this.saveConfigOnServer();
                 },
                 loadInitialStateConfig: function () {
+                    this.images = visConfig?.images; //Copy image definitions from visConfig to app
+                    this.pointclouds = visConfig?.pointclouds;
                     this.potreeProjectConfig = this.visConfig.jsConf?.potree;
-                    const data =  this.visConfig.jsConf?.potree;
+                    this.customFeaturesConfig = this.visConfig.jsConf?.customFeatures;
+
                     // For initialization, for now, we decide not to load any measurements or volumes etc
+                    /*
                     data.measurements = [];
                     data.volumes = [];
                     data.cameraAnimations = [];
@@ -185,82 +350,69 @@
                     //data.orientedImages =data.orientedImages || [];
                     //data.annotations = data.annotations || []; //Should be passed to the Vue component for editing, and also be saved on the conf properly
                     Potree.loadProject(this.viewer, data);
+                     */
 
-                    this.explosionEnabled = visConfig.customFeatures?.explosionEnabled;
-
+                    this.galleryItemsConfig = this.customFeaturesConfig?.galleryItemsSettings || {};
+                    this.explosionEnabled = this.customFeaturesConfig?.explosionEnabled;
+                    if (this.customFeaturesConfig?.explosionSettings) {
+                        this.explosionSettings = this.customFeaturesConfig?.explosionSettings
+                    }else{
+                        this.explosionSettings={};
+                    }
+                },
+                initializeExplosionIfNewModel:function(ptId){
+                    if (!this.explosionSettings[ptId]) {
+                        this.explosionSettings[ptId] = {
+                            title: this.pointclouds[ptId].title,
+                            direction: '',
+                            ptId: ptId,
+                            initialPos: this.ptPotreeReferences[ptId].position.clone()
+                        }
+                    }
                 },
                 toggleExplosion: function () {
                     this.explosionEnabled = !this.explosionEnabled;
                 },
-                explodeMinus: function () {
-                    this.explosionCurrentStep = this.explosionCurrentStep - 1;
+                explodeModels:function(plusminus){
+                    this.explosionCurrentStep = this.explosionCurrentStep + plusminus;
                     const step = this.explosionCurrentStep;
                     const moveStep = this.moveStep;
                     const scaleStep = this.scaleStep;
-                    this.viewer.scene.pointclouds.forEach(function (pt, index) {
-                        let opt;
-                        if (index == 0) {
-                            opt = 'left';
-                        } else if (index == 1) {
-                            opt = 'right';
-                        } else if (index == 2) {
-                            opt = 'up';
-                        }
-                        console.log("moveStep", (step * moveStep), "scaleStep", 1 - (step * scaleStep));
-                        if (opt === 'scale') {
-                            const scaleSize = 1 - (step * scaleStep);
-                            pt.scale.set(scaleSize, scaleSize, scaleSize);
-                        }
-                        if (opt === 'right') {
-                            pt.position.x = pt.position.x - moveStep; // pt.position.x - pt.position.x * (step * moveStep)
-                        }
-                        if (opt === 'left') {
-                            pt.position.x = pt.position.x + moveStep;
-                        }
-                        if (opt === 'up') {
-                            pt.position.y = pt.position.y - pt.position.y * (step * moveStep)
-                        }
-                        if (opt === 'down') {
-                            pt.position.y = pt.position.y + pt.position.y * (step * moveStep)
-                        }
-                    });
-                    console.log("Step is", step);
-                },
-                explodePlus: function () {
-                    this.explosionCurrentStep = this.explosionCurrentStep + 1;
-                    const step = this.explosionCurrentStep;
-                    const moveStep = this.moveStep;
-                    const scaleStep = this.scaleStep;
-                    this.viewer.scene.pointclouds.forEach(function (pt, index) {
-                        let opt;
-                        if (index == 0) {
-                            opt = 'left';
-                        } else if (index == 1) {
-                            opt = 'right';
-                        } else if (index == 2) {
-                            opt = 'up';
-                        }
-                        const curPos = pt.position;
-                        console.log("moveStep", (step * moveStep), "scaleStep", 1 + (step * scaleStep));
+                    console.log("Trying to explode with step", step, " moveStep", moveStep, " scaleStep",scaleStep);
+                    Object.entries(this.explosionSettings).forEach( ([ptId, item]) =>{
+                        const pt = this.ptPotreeReferences[ptId];
+                        const opt= item.direction;
+                        const initPos = item.initialPos;
+                        const modifier =  step * moveStep/100;
                         if (opt === 'scale') {
                             const scaleSize = 1 + (step * scaleStep);
                             pt.scale.set(scaleSize, scaleSize, scaleSize);
                         }
                         if (opt === 'right') {
-                            pt.position.x = pt.position.x + moveStep;
+                            pt.position.x = initPos.x * (1 + modifier);
                         }
                         if (opt === 'left') {
-                            pt.position.x = pt.position.x - moveStep;
+                            pt.position.x = initPos.x * (1 - modifier);
+                        }
+                        if (opt === 'front') {
+                            pt.position.y = initPos.y * (1 + modifier);
+                        }
+                        if (opt === 'back') {
+                            pt.position.y = initPos.y * (1 - modifier);
                         }
                         if (opt === 'up') {
-                            pt.position.y = pt.position.y + pt.position.y * (step * moveStep)
+                            pt.position.z = initPos.z * (1 + modifier);
                         }
                         if (opt === 'down') {
-                            pt.position.y = pt.position.y - pt.position.y * (step * moveStep)
+                            pt.position.z = initPos.z * (1 - modifier);
                         }
                     });
-                    console.log("Step is", step);
-
+                },
+                explodePlus: function () {
+                    this.explodeModels(+1);
+                },
+                explodeMinus: function () {
+                    this.explodeModels(-1);
                 },
                 addAnnotation: function () {
                     this.annotationWaitingClick = true;
@@ -292,9 +444,98 @@
                             console.log(currentAnnotation);
                         }
                     },{once:true});
+                },
+                csvToFloatList: function (param) {
+                    let parts = param.split(',');
+                    if (!parts.length) {
+                        return null;
+                    }
+                    let res = parts.map((pt) => {
+                        return parseFloat(pt)
+                    });
+                    return res;
+                },
+                selectGalleryImage:function(imgUID){
+                    console.log("selectedImageUrl:", this.images[imgUID].url, this.galleryItemsConfig[imgUID]);
+                    this.selectedImage = this.images[imgUID];
+                    const conf = this.galleryItemsConfig[imgUID];
+                    if (conf){
+                        if (conf.viewTarget && conf.viewPosition){
+                            this.viewer.scene.view.setView(this.csvToFloatList(conf.viewPosition), this.csvToFloatList(conf.viewTarget));
+                        }
+                    }
+                },
+                closeGalleryImage:function(){
+                    this.selectedImage = null;
+                },
+                saveOrientationOnSelectedImage:function (imgUID){
+                      const cameraPositionStr = this.viewer.scene.view.position.toArray().toString();
+                      const targetStr = this.viewer.scene.view.getPivot().toArray().toString();
+                      if (!this.galleryItemsConfig[imgUID]){
+                          this.galleryItemsConfig[imgUID] = {
+                          }
+                      }
+                      this.galleryItemsConfig[imgUID].viewTarget = targetStr;
+                      this.galleryItemsConfig[imgUID].viewPosition = cameraPositionStr;
+                      console.log("Saved oriented for image:", imgUID, this.galleryItemsConfig[imgUID]);
+                      this.saveConfigOnServer();
+                },
+
+                showImageOld:function (imageUrl){
+                    const map = new THREE.TextureLoader().load(imageUrl);
+                    const material = new THREE.MeshBasicMaterial( { map: map , opacity: 0.5, transparent: true,} );
+                    const mesh = new THREE.Mesh(new THREE.BoxGeometry(30, 0, 30),material);
+
+                    viewer.scene.scene.add( mesh );
+
+                    const currentCamera = viewer.scene.getActiveCamera();
+                    const domElement = viewer.renderer.domElement;
+
+
+
+                    let orbit = new OrbitControls( currentCamera, domElement );
+                    this.currentOrbitControls = orbit;
+                    orbit.update();
+                    orbit.addEventListener( 'change', this.render );
+                    let control = new TransformControls( currentCamera, domElement );
+
+                    control.addEventListener( 'change', this.render);
+                    control.addEventListener( 'dragging-changed', ( event ) => {
+                        if (this.orbitingLocked){
+                            orbit.enabled = ! event.value;
+                        }
+                        else{
+                            orbit.enabled = event.value;
+                        }
+
+                    } );
+    				control.attach( mesh );
+
+    				viewer.scene.scene.add( control );
+
+
+                },
+                lockOrbiting(){
+                    this.orbitingLocked = true;
+                },
+                unlockOrbiting(){
+                    this.orbitingLocked = false;
+                },
+                getCurrentOrbitControls(){
+                   return this.currentOrbitControls;
+                },
+                resetOrbitControls(){
+                    this.currentOrbitControls = this.initialOrbitControls;
+                },
+                render:function(){
+                    //viewer.renderer.render( this.scene , this.camera);
+                    viewer.renderer.render( this.viewer.scene.scene , this.viewer.scene.getActiveCamera());
                 }
             }
         })
+
+
     </script>
     {% endverbatim %}
+
 {% endblock %}

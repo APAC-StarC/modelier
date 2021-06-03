@@ -27,13 +27,6 @@ def admin_model_preview(request,id):
 
 
 @staff_member_required
-def admin_vis_save_config(request, id):
-    original = PotreeVisualization.objects.get(pk=id)
-    pointclouds = [original]
-    vis = PotreeVisualization(title="Model Preview", tools_enabled=True, pointclouds_override=pointclouds)
-    return render(request, 'admin/pointclouds/potreemodel/potree_preview.html', {'vis':vis,'pointclouds': pointclouds})
-
-@staff_member_required
 def admin_visualization_management(request,id):
     vis = Visualization.objects.get(pk=id)
     return render(request, 'admin/pointclouds/visualization/admin_management.html', {'vis':vis})
@@ -45,8 +38,9 @@ def admin_update_potree_config(request,id):
     potree_config = json.loads(request.body)
     if not vis.json_config:
         vis.json_config = {}
-    vis.json_config.potree_config = potree_config
-    # JsonResponse()
+    vis.potree_config = potree_config
+    vis.save()
+    return JsonResponse({'success':True})
 
 
 

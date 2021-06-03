@@ -81731,6 +81731,7 @@ ENDSEC
 
 		update (delta) {
 			let view = this.scene.view;
+			//console.log("Inside OC: YawDelta, PitcHelta, Delta",this.yawDelta, this.pitchDelta, delta);
 
 			{ // apply rotation
 				let progression = Math.min(1, this.fadeFactor * delta);

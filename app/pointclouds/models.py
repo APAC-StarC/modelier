@@ -238,9 +238,6 @@ class Visualization(models.Model):
         else:
             pts = self.pointclouds.all()
         config = {
-            "pointclouds": {
-                pt.jsId: pt.json_config() for pt in pts
-            },
             "menuConf": {
                 "toolsEnabled": self.tools_enabled,
                 "showAppearance": self.show_appearance,
@@ -250,9 +247,56 @@ class Visualization(models.Model):
                 "showAbout": self.show_about,
                 "showGallery": self.show_gallery,
             },
-            "jsConf": self.potree_config
+            "jsConf": self.potree_config,
+            "pointclouds": {
+                pt.jsId: pt.json_config() for pt in pts
+            },
+            "images": {x.jsId: {
+                "id": x.jsId,
+                "title": x.title,
+                "url": x.img.url,
+                "order": x.order
+                # "cameraPosition": x.camera_position,
+                # "cameraTarget": x.camera_target,
+            } for x in self.gallery_images.all()},
         }
         return config
+
+
+    def get_js_admin_url(self):
+        return reverse('potree_admin_visualization_management', kwargs={'id': self.id})
+
+    def get_unbranded_url(self):
+        return reverse('potree_v2_embedded', kwargs={'id': self.id})
+
+    def admin_management_link(self):
+        return mark_safe("<a href='%s' target='_blank'>Manage</a>" % self.get_js_admin_url())
+
+    def preview_link(self):
+        return mark_safe("<a href='%s' target='_blank'>Preview</a>" % self.get_unbranded_url())
+
+    def preview_link_ssl(self):
+        return mark_safe("<a href='%s?ssl=true' target='_blank'>Preview SSL</a>" % self.get_unbranded_url())
+
+    preview_link.short_description = 'Preview'
+    preview_link_ssl.short_description = 'Preview SSL'
+
+    def get_embedded_code(self):
+        site = Site.objects.get_current()
+        code = f'<iframe id="{self.id}" width="100%" src="http://{site.domain}{self.get_unbranded_url()}"></iframe>'
+        return code
+
+    get_embedded_code.short_description = 'Embedded Code'
+    get_embedded_code.allow_tags = False
+
+    def get_embedded_code_ssl(self):
+        site = Site.objects.get_current()
+        code = f'<iframe id="{self.id}" width="100%" src="https://{site.domain}{self.get_unbranded_url()}"></iframe>'
+        return code
+
+    get_embedded_code_ssl.short_description = 'SSL Embedded Code'
+    get_embedded_code_ssl.allow_tags = False
+
 
 
 class Pointcloud(models.Model):
@@ -275,3 +319,18 @@ class Pointcloud(models.Model):
             #"images": {},
         }
         return config
+
+class GalleryImage(models.Model):
+    visualization = models.ForeignKey(Visualization, related_name='gallery_images', on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    title = models.CharField(max_length=254, help_text="Identifier for the model")
+    order = models.PositiveIntegerField(default=0)
+    img = models.ImageField(upload_to='galleries')
+
+
+    @property
+    def jsId(self):
+        return str(self.id.hex)
+
+    class Meta:
+        ordering = ('order',)

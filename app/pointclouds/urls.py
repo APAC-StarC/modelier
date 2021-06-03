@@ -8,4 +8,7 @@ urlpatterns = [
 
 
     path('admin/vis-potree-management/<uuid:id>/',  views.admin_visualization_management, name="potree_admin_visualization_management"),
+    path('admin/vis-potree-management/<uuid:id>/config-update',  views.admin_update_potree_config, name="potree_admin_visualization_management_config_update"),
+    path('<uuid:id>/v2/embed/', views.potree_viewer, {'vtype': 'unbranded'}, name="potree_v2_embedded"),
+
 ]
