@@ -389,22 +389,22 @@
                             pt.scale.set(scaleSize, scaleSize, scaleSize);
                         }
                         if (opt === 'right') {
-                            pt.position.x = initPos.x * (1 + modifier);
-                        }
-                        if (opt === 'left') {
                             pt.position.x = initPos.x * (1 - modifier);
                         }
-                        if (opt === 'front') {
-                            pt.position.y = initPos.y * (1 + modifier);
+                        if (opt === 'left') {
+                            pt.position.x = initPos.x * (1 + modifier);
                         }
-                        if (opt === 'back') {
+                        if (opt === 'front') {
                             pt.position.y = initPos.y * (1 - modifier);
                         }
+                        if (opt === 'back') {
+                            pt.position.y = initPos.y * (1 + modifier);
+                        }
                         if (opt === 'up') {
-                            pt.position.z = initPos.z * (1 + modifier);
+                            pt.position.z = initPos.z * (1 - modifier);
                         }
                         if (opt === 'down') {
-                            pt.position.z = initPos.z * (1 - modifier);
+                            pt.position.z = initPos.z * (1 + modifier);
                         }
                     });
                 },
