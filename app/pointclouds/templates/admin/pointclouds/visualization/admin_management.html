@@ -91,7 +91,8 @@
         import * as THREE from "/staticfiles/pointclouds/potree1.7/libs/three.js/build/three.module.js";
         import { TransformControls } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/controls/TransformControls.js';
         import { OrbitControls } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/controls/OrbitControls.js';
-
+        import { FBXLoader } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/loaders/FBXLoader.js';
+        window.THREE = THREE;
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -237,6 +238,7 @@
                 const axesHelper = new THREE.AxesHelper( 5 );
                 viewer.scene.scene.add( axesHelper ); // Potree saves the THREEJs scene under a scene ref in the Potree scene
                 this.orbitControls = viewer.getControls();
+                this.loadGprModels();
                 window.addEventListener('keydown', this.keyDown);
                 window.app = this;
             },
@@ -530,6 +532,33 @@
                 render:function(){
                     //viewer.renderer.render( this.scene , this.camera);
                     viewer.renderer.render( this.viewer.scene.scene , this.viewer.scene.getActiveCamera());
+                },
+                loadGprModels:function(){
+                    let _this = this;
+
+                    const map = new THREE.TextureLoader().load('/mediafiles/gpls/gpl1.png');
+                    const material = new THREE.MeshBasicMaterial( { map: map , opacity: 0.5, transparent: true,} );
+                    const mesh = new THREE.Mesh(new THREE.BoxGeometry(11, 9, 0.1),material);
+
+                    viewer.scene.scene.add( mesh );
+                    /*
+                    var loader = new FBXLoader();
+                    loader.load( '/mediafiles/gpls/gpl1.fbx', function ( object ) {
+                        console.log("Loaded fbx");
+                        const map = new THREE.TextureLoader().load('/mediafiles/gpls/gpl1.png');
+                        object.traverse( function ( child ) {
+                            if ( child instanceof THREE.Mesh ) {
+                                child.material.map = map;
+                                //child.castShadow = true;
+                                //child.receiveShadow = false;
+                                //child.flatshading = true;
+                            }
+                        });
+                        _this.viewer.scene.scene.add( object );
+                    });
+
+                     */
+
                 }
             }
         })
