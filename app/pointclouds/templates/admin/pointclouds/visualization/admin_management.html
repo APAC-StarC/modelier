@@ -1,6 +1,6 @@
 {% extends 'pointclouds/potree_base_1.7.html' %}
 {% load static %}
-{% block user_vis_menu %}
+{% comment %}
     {% verbatim %}
     <div class="fixed top-0 bottom-0 right-0 w-48 px-2 py-4 z-10 bg-gray-50 flex flex-col">
         <span class="relative z-0 inline-flex shadow-sm rounded-md flex flex-wrap">
@@ -68,30 +68,29 @@
         </div>
     </div>
     {% endverbatim %}
-    {% comment %}
-    Removed sections
-    <div class="mt-2 flex flex-col justify-stretch p-2 border border-blue-700">
-                <span class="text-xs">Annotations</span>
-                <div>
-                    <button type="button" v-on:click="addAnnotation"
-                            class="-ml-px relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
-                        ➕
-                    </button>
-                    <p class="text-xs" v-if="annotationWaitingClick">Click anywhere to select annotation location...</p>
-                </div>
-            </div>
-    {% endcomment %}
-{% endblock %}
+
+{#    Removed sections#}
+{#    <div class="mt-2 flex flex-col justify-stretch p-2 border border-blue-700">#}
+{#                <span class="text-xs">Annotations</span>#}
+{#                <div>#}
+{#                    <button type="button" v-on:click="addAnnotation"#}
+{#                            class="-ml-px relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 bg-white text-md font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">#}
+{#                        ➕#}
+{#                    </button>#}
+{#                    <p class="text-xs" v-if="annotationWaitingClick">Click anywhere to select annotation location...</p>#}
+{#                </div>#}
+{#            </div>#}
+
+{% endcomment %}
 
 
-{% block js %}
+{% block js-break %}
     {{ block.super }}
     {% verbatim %}
     <script type="module">
         import * as THREE from "/staticfiles/pointclouds/potree1.7/libs/three.js/build/three.module.js";
         import { TransformControls } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/controls/TransformControls.js';
         import { OrbitControls } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/controls/OrbitControls.js';
-        import { FBXLoader } from '/staticfiles/pointclouds/potree1.7/libs/three.js/libs/jsm/loaders/FBXLoader.js';
         window.THREE = THREE;
         function getCookie(name) {
             let cookieValue = null;
@@ -284,13 +283,16 @@
                         case "KeyZ":
                           this.orbitControls.panDelta.x -= mov;
                           break;
-                        case "KeyC":
-                          this.orbitControls.panDelta.x += mov;
-                          break;
                         case "KeyR":
-                          this.orbitControls.radiusDelta += zom;
+                          this.orbitControls.panDelta.z += mov;
                           break;
                         case "KeyF":
+                          this.orbitControls.panDelta.z += mov;
+                          break;
+                        case "KeyT":
+                          this.orbitControls.radiusDelta += zom;
+                          break;
+                        case "KeyG":
                           this.orbitControls.radiusDelta -= zom;
                           break;
                       }

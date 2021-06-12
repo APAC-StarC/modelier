@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>{{ vis.title }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{% static 'tailwind/tailwind.min.css' %}" rel="stylesheet">
     <style>
         /* CSS Fixes to fix changes introduced from tailwind */
         li#tools, li#navigation, li#clipping_tools {
@@ -30,7 +30,7 @@
             font-family: 'Roboto', sans-serif;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+
 </head>
 
 <body>
@@ -87,14 +87,14 @@
     }
     #img-overlay-wrapper #img-container {
         width: 50%;
-        opacity: 0.2;
+        opacity: 0.4;
         transition: opacity 1s;
         text-align: center;
     }
 
     #img-overlay-wrapper #img-container:hover {
         width: 50%;
-        opacity: 0.8;
+        opacity: 0.7;
     }
 
 
@@ -217,9 +217,10 @@
             <div v-if="selectedImage">
                 <gallery-item-viewer v-on:image-closed="closeGalleryImage" v-bind:selected-image="selectedImage"></gallery-item-viewer>
             </div>
-            {% block user_vis_menu %}
+            {% block user_vis_menu_Break %}
             {% endblock %}
         </div>
+        <div id="admin-app"></div>
 
 
         <div class="">
@@ -282,6 +283,8 @@
             toggleFullScreen();
         });
     </script>
+    <script type="text/javascript" src="{% static 'vue/dist/js/chunk-vendors.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vue/dist/js/app.js' %}"></script>
 {% endblock %}
 </body>
 </html>
