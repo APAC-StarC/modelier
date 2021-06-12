@@ -105,97 +105,6 @@
         max-width: 100%;
     }
 
-
-    {##}
-    {##img-slider-container {#}
-    {#    position: absolute;#}
-    {#    bottom: 5px;#}
-    {#    right: 25px;#}
-    {#    height: 250px;#}
-    {#    width: 300px;#}
-    {#    background-color: rgba(255, 255, 255, 0.1);#}
-    {#    padding: 10px;#}
-    {#    border-radius: 5px;#}
-    {#    z-index: 1000;#}
-    {##}
-    {#    display: flex;#}
-    {#    flex-direction: column;#}
-    {#    justify-content: stretch;#}
-    {#    align-items: stretch;#}
-    {
-    #}#}
-    {##}
-    {##img-slider-container h1 {#}
-    {#    font-size: 1.4rem;#}
-    {#    color: white;#}
-    {#    text-align: center;#}
-    {
-    #}#}
-    {##}
-    {##img-slider {#}
-    {#    flex-grow: 1;#}
-    {#    display: flex;#}
-    {#    flex-direction: column;#}
-    {#    justify-content: center;#}
-    {
-    #}#}
-    {##}
-    {##img-slider .slide-box {#}
-    {#    height: 100%;#}
-    {#    display: flex;#}
-    {#    flex-direction: column;#}
-    {#    align-items: center;#}
-    {
-    #}#}
-    {##}
-    {##img-slider .slide-image {#}
-    {#    max-height: 100%;#}
-    {#    max-width: 100%;#}
-    {#    flex-grow: 1;#}
-    {
-    #}#}
-    {##}
-    {##img-slider .slide-title {#}
-    {#    color: white;#}
-    {#    text-align: center;#}
-    {#    font-size: 1rem;#}
-    {#    flex-shrink: 1;#}
-    {#    padding-top: 5px;#}
-    {
-    #}#}
-    {##}
-    {##img-slider .slick-slide {#}
-    {#    cursor: pointer;#}
-    {
-    #}#}
-    {##}
-    }
-
-
-
-    {#.shift-down #img-overlay-wrapper {#}
-    {#    display: none !important;#}
-    {
-    #}#}
-    {##}
-
-    {##}
-    {#.action-btn {#}
-    {#        cursor: pointer;#}
-    {#        padding-left: 5px;#}
-    {#        padding-right: 5px;#}
-    {
-    #}#}
-    {##}
-    {#.action-btn svg {#}
-    {#    width: 15px;#}
-    {#    height: 20px;#}
-    {#    fill: #384348;#}
-    {#    display: inline-block;#}
-    {#    vertical-align: middle;#}
-    {
-    #}#}
-
 </style>
 <!-- INCLUDE SETTINGS HERE -->
 {% block content %}
@@ -277,13 +186,8 @@
                 }
             });
         }
-
-
         $("#fit-toscreen-btn").click(() => {
             window.viewer.fitToScreen();
-        });
-        $("#go-fullscreen-btn").click(() => {
-            toggleFullScreen();
         });
     </script>
     <script type="text/javascript" src="{% static 'vue/dist/js/chunk-vendors.js' %}"></script>

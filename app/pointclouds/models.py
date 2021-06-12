@@ -259,9 +259,13 @@ class Visualization(models.Model):
                 # "cameraPosition": x.camera_position,
                 # "cameraTarget": x.camera_target,
             } for x in self.gallery_images.all()},
+            "undergroundDepictions": {x.jsId: {
+                "id": x.jsId,
+                "title": x.title,
+                "url": x.img.url,
+            } for x in self.underground_depictions.all()},
         }
         return config
-
 
     def get_js_admin_url(self):
         return reverse('potree_admin_visualization_management', kwargs={'id': self.id})
@@ -298,7 +302,6 @@ class Visualization(models.Model):
     get_embedded_code_ssl.allow_tags = False
 
 
-
 class Pointcloud(models.Model):
     visualization = models.ForeignKey(Visualization, related_name='pointclouds', on_delete=models.CASCADE)
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
@@ -315,10 +318,11 @@ class Pointcloud(models.Model):
             "url": self.url,
             "title": self.title,
             "id": self.jsId,
-            #"annotations": [],
-            #"images": {},
+            # "annotations": [],
+            # "images": {},
         }
         return config
+
 
 class GalleryImage(models.Model):
     visualization = models.ForeignKey(Visualization, related_name='gallery_images', on_delete=models.CASCADE)
@@ -327,10 +331,20 @@ class GalleryImage(models.Model):
     order = models.PositiveIntegerField(default=0)
     img = models.ImageField(upload_to='galleries')
 
-
     @property
     def jsId(self):
         return str(self.id.hex)
 
     class Meta:
         ordering = ('order',)
+
+
+class UndergroundDepiction(models.Model):
+    visualization = models.ForeignKey(Visualization, related_name='underground_depictions', on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    title = models.CharField(max_length=254, help_text="Identifier for the depiction")
+    img = models.ImageField(upload_to='underground')
+
+    @property
+    def jsId(self):
+        return str(self.id.hex)
