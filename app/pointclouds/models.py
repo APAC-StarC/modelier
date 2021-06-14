@@ -255,7 +255,8 @@ class Visualization(models.Model):
                 "id": x.jsId,
                 "title": x.title,
                 "url": x.img.url,
-                "order": x.order
+                "order": x.order,
+                "width": x.img.width,
                 # "cameraPosition": x.camera_position,
                 # "cameraTarget": x.camera_target,
             } for x in self.gallery_images.all()},
