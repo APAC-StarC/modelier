@@ -52,27 +52,11 @@
 <script src="{% static 'pointclouds/potree1.7/build/potree/potree.js' %}"></script>
 <script src="{% static 'pointclouds/potree1.7/libs/plasio/js/laslaz.js' %}"></script>
 
-<script type="module">
-    //import * as THREE from "{% static 'pointclouds/potree1.7/libs/three.js/build/three.module.js' %}";
-    //window.THREE = THREE;
-</script>
 <!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
-{##}
-{#<link rel="stylesheet" type="text/css" href="{% static 'slick/slick.css' %}"/>#}
-{#<link rel="stylesheet" type="text/css" href="{% static 'slick/slick-theme.css' %}"/>#}
-{#<script type="text/javascript" src="{% static 'slick/slick.min.js' %}"></script>#}
-{#<script type="text/javascript" src="{% static 'pointclouds/custom_config_load.js' %}"></script>#}
 <style>
     body, html {
         height: 100%;
         margin: 0;
-    }
-
-    .centered {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
     }
 
 </style>
@@ -90,9 +74,6 @@
                 <div id="potree_render_area"></div>
                 <div id="potree_sidebar_container"></div>
             </div>
-            {#            <div id="img-slider-container" style="display: none;">#}
-            {#                <div id="img-slider" style="position: relative; width: 100%; height:100%;"></div>#}
-            {#            </div>#}
             <div class="copyright bg-gray-900 border-t-1 border-t-white border-t-dashed flex flex-col py-2" style="position: absolute;
                 left: 0;
                 bottom: 0;
