@@ -257,6 +257,7 @@ class Visualization(models.Model):
                 "url": x.img.url,
                 "order": x.order,
                 "width": x.img.width,
+                "height": x.img.height,
                 # "cameraPosition": x.camera_position,
                 # "cameraTarget": x.camera_target,
             } for x in self.gallery_images.all()},

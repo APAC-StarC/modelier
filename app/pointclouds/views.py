@@ -29,7 +29,7 @@ def admin_model_preview(request,id):
 @staff_member_required
 def admin_visualization_management(request,id):
     vis = Visualization.objects.get(pk=id)
-    return render(request, 'admin/pointclouds/visualization/admin_management.html', {'vis':vis})
+    return render(request, 'admin/pointclouds/visualization/admin_management.html', {'vis':vis, 'adminMode':True})
 
 from django.http import JsonResponse
 @staff_member_required
@@ -43,6 +43,17 @@ def admin_update_potree_config(request,id):
     return JsonResponse({'success':True})
 
 
+@xframe_options_exempt
+def potree_viewer_1_7(request, id, vtype):
+    if vtype == 'unbranded':
+        template_name = 'pointclouds/unbranded_viewer_1.7.html'
+    else:
+        template_name = 'pointclouds/branded_viewer.html'
+    try:
+        vis = Visualization.objects.get(pk=id)
+        return render(request, template_name, {'vis': vis})
+    except Visualization.DoesNotExist:
+        return Http404("Visualization does not exist")
 
 
 

@@ -6,7 +6,7 @@
         <img class="w-100 w-max-100 rounded-sm border border-gray-200" v-bind:src="item.url"
              v-on:click="$emit('image-selected',uid)"/>
         <div class="block text-xs mt-2">Title: <span class="italic font-semibold">{{ item.title }}</span></div>
-        <div class="mt-2 flex justify-between text-sm font-semibold"><button v-on:click="$emit('save-image-orientation',uid)" class="text-red-600 italic">Save orientation...</button><span v-if="selectedImage && selectedImage.id==uid" class="text-blue-700">Active</span></div>
+        <div class="mt-2 flex justify-between text-sm font-semibold" v-if="adminMode"><button v-on:click="$emit('save-image-orientation',uid)" class="text-red-600 italic">Save orientation...</button><span v-if="selectedImage && selectedImage.id==uid" class="text-blue-700">Active</span></div>
       </div>
     </div>
   </portal>
@@ -23,7 +23,7 @@ export default {
   data() {
     return {}
   },
-  props: ['galleryItemsConfig', 'viewer', 'images', 'selectedImage'],
+  props: ['galleryItemsConfig', 'viewer', 'images', 'selectedImage','adminMode'],
 }
 </script>
 

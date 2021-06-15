@@ -20,8 +20,11 @@
     </div>
     <div v-if="showGallery" class="mt-2">
       <div v-for="(item, udId) in depictions" v-bind:key="'depictGalleryItem-'+udId"
-           class="px-2 py-1 flex">
-        <Toggle v-model="meshes[udId].visible"></Toggle><span class="block ml-2 text-xs mt-2 text-center">{{ item.title }}</span>
+           class="px-2 py-1">
+        <div v-if="meshes[udId]" class="flex">
+          <Toggle v-model="meshes[udId].visible"></Toggle>
+          <span class="block ml-2 text-xs mt-2 text-center">{{ item.title }}</span>
+        </div>
       </div>
     </div>
 
@@ -33,6 +36,7 @@ import UndergroundDepictionConfigItem from "./UndergroundDepictionConfigItem.vue
 import * as THREE from "three";
 import {Portal} from '@linusborg/vue-simple-portal'
 import Toggle from '@vueform/toggle/dist/toggle.vue2.js'
+
 export default {
   name: "UndergroundDepictionsConfigurator",
   components: {
@@ -79,6 +83,8 @@ export default {
       mesh.heigh = height;
       mesh.position.set(centerX, centerY, z);
       mesh.rotation.z = rot * 3.14 / 180;
+      //mesh.rotation.x = 3.14;
+      mesh.rotation.y = 3.14;
     },
     calcWidthHeight(p1, p2, p3, p4) {
       const centerX = (p1.x + p2.x + p3.x + p4.x) / 4;

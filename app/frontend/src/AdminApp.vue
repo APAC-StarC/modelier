@@ -27,7 +27,9 @@
             v-bind:selected-image="selectedImage"
             v-bind:images="images"
             v-bind:gallery-items-config="galleryItemsConfig"
-            v-bind:viewer="viewer">
+            v-bind:viewer="viewer"
+            v-bind:admin-mode="adminMode"
+        >
         </GalleryItemsPlayer>
       </div>
       <div class="flex mt-4" v-if="depictionsEnabled">
@@ -39,7 +41,7 @@
         <span class="text-sm font-medium pl-4 block" v-if="depictionsOpen">GPR Meshes</span>
         <span class="text-sm font-medium pl-4 block" v-if="!depictionsOpen">GPR Meshes</span>
       </div>
-      <div v-if="undergroundDepictions && depictionsEnabled">
+      <div v-if="depictionsEnabled">
         <UndergroundDepictionsConfigurator
             v-bind:depictions="undergroundDepictions"
             v-bind:settings="undergroundDepictionsSettings"
@@ -71,7 +73,7 @@
       <!--        </button>-->
       <!--      </div>-->
 
-      <div class="py-2 mt-6 text-white">
+      <div class="py-2 mt-6 text-white" v-if="adminMode">
         <div class="flex justify-between">
           <span class="font-semibold">Admin config</span>
           <div class="relative z-0 inline-flex shadow-sm rounded-md flex flex-wrap">
@@ -192,7 +194,7 @@ export default {
       // CYI Tools Viewer settings
       galleryOpen: false,
       depictionsOpen: false,
-      adminMode: true,
+      adminMode: window.adminMode,
       //Admin Tools
 
       explosionEnabled: false,
@@ -364,7 +366,7 @@ export default {
         this.explosionSettings = this.customFeaturesConfig?.explosionSettings
       }
       if (this.customFeaturesConfig?.undergroundDepictionsSettings) {
-        this.undergroundDepictionsSettings = this.customFeaturesConfig?.undergroundDepictionsSettings
+        this.undergroundDepictionsSettings = this.customFeaturesConfig.undergroundDepictionsSettings
       }
     },
     initializeExplosionIfNewModel: function (ptId) {
@@ -372,7 +374,7 @@ export default {
         this.explosionSettings.ptModels = {};
       }
       if (!this.explosionSettings.ptModels[ptId]) {
-        this.explosionSettings[ptId] = {
+        this.explosionSettings.ptModels[ptId] = {
           title: this.visConfig.pointclouds[ptId].title,
           direction: '',
           ptId: ptId,
@@ -445,7 +447,8 @@ export default {
       this.galleryItemsConfig[imgUID].viewTarget = targetStr;
       this.galleryItemsConfig[imgUID].viewPosition = cameraPositionStr;
       this.galleryItemsConfig[imgUID].cameraMode = cameraMode;
-      this.galleryItemsConfig[imgUID].browserWidthOnSave = document.documentElement.clientWidth;
+      this.galleryItemsConfig[imgUID].browserWidth = document.documentElement.clientWidth;
+      this.galleryItemsConfig[imgUID].browserHeight = document.documentElement.clientHeight;
       this.saveConfigOnServer();
     },
     render: function () {
