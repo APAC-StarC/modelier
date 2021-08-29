@@ -134,6 +134,16 @@ dmypy.json
 /app/static/
 /app/staticfiles/
 
+
+
+# Divio
+.divio
+/data.tar.gz
+/data
+/app/data.tar.gz
+/app/data
+
+
 .env-prod
 
 tmp/

@@ -1,0 +1,61 @@
+version: '3.7'
+
+services:
+  web:
+    build: ./app
+    command: gunicorn modelier.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./app/:/usr/src/app/
+      - static_volume:/usr/src/app/staticfiles
+      - media_volume:/usr/src/app/mediafiles
+    expose:
+      - 8000
+    env_file:
+      - .env-prod
+    depends_on:
+      - db
+    networks:
+      - nginx_network
+      - database1_network
+    deploy:
+      restart_policy:
+        condition: any
+  db:
+    image: postgres
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    networks:
+      - database1_network
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    deploy:
+      restart_policy:
+        condition: any
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/usr/src/app/staticfiles
+      - media_volume:/usr/src/app/mediafiles
+      - type: bind
+        source: /var/www/html/EpEMERA/sites/ephemera/ihat/models
+        target: /opt/models
+    ports:
+      - 80:80
+    depends_on:
+      - web
+    networks:
+      - nginx_network
+    deploy:
+      restart_policy:
+        condition: any
+
+volumes:
+  db_volume:
+  static_volume:
+  media_volume:
+
+networks:
+  nginx_network:
+    driver: bridge
+  database1_network:
+    driver: bridge
