@@ -37,7 +37,7 @@ DEFAULT_STORAGE_DSN = os.environ.get('DEFAULT_STORAGE_DSN')
 DefaultStorageClass = dsn_configured_storage_class('DEFAULT_STORAGE_DSN')
 
 # Django's DEFAULT_FILE_STORAGE requires the class name
-DEFAULT_FILE_STORAGE = 'quickstart.settings.DefaultStorageClass'
+DEFAULT_FILE_STORAGE = 'modelier.settings_divio.DefaultStorageClass'
 
 # only required for local file storage and serving, in development
 MEDIA_URL = 'media/'
