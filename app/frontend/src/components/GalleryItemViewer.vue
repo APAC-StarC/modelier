@@ -1,6 +1,6 @@
 <template>
-  <div>
-      <img v-bind:src="selectedImage.url" v-bind:width="imgWidth" v-bind:height="imgHeight" class="centered-fixed" v-bind:style="{'opacity':opacity}"/>
+  <div class="selected-image-container">
+      <img v-bind:src="selectedImage.url" width="auto"  class="centered-fixed" v-bind:style="{'opacity':opacity, 'max-height':imgHeight + 'px'}"/>
       <div class="controls">
         <Slider v-model="opacity" v-bind:min="0.1" v-bind:max="1" v-bind:step="-1" style="width:200px" />
         <button class="close-img-button text-gray-900 bg-white rounded-sm px-2 py-1 font-normal text-normal" v-on:click="$emit('image-closed')">close
@@ -18,32 +18,20 @@ export default {
   },
   data() {
     return {
-      opacity: 0.5
+      opacity: 0.5,
     }
   },
-  props: ['selectedImage'],
+  props: ['selectedImage', 'selectedImageConf'],
   computed:{
-    imgWidth:function(){
-      const originalBrowserWidthOnSave = this.selectedImage.browserWidth || document.documentElement.clientWidth;
-      const currentBrowserWidth = document.documentElement.clientWidth;
-      console.log('originalBrowserWidthOnSave',originalBrowserWidthOnSave,'currentBrowserWidth',currentBrowserWidth, 'imgWidth', this.selectedImage.width);
-      const imgWidth = currentBrowserWidth / originalBrowserWidthOnSave * currentBrowserWidth;
-      console.log("Calculated Image width:", imgWidth);
-      console.log("Final img width", Math.min(imgWidth, this.selectedImage.width));
-      //const calculatedWidth =  Math.min(imgWidth, this.selectedImage.width);
-      //return calculatedWidth;
-      return 'auto';
 
-    },
     imgHeight:function(){
-      const originalBrowserHeightOnSave = this.selectedImage.browserHeight || document.documentElement.clientHeight;
+      const originalBrowserHeightOnSave = this.selectedImageConf.browserHeight || 0;
       const currentBrowserHeight = document.documentElement.clientHeight;
-      console.log('originalBrowserHeightOnSave',originalBrowserHeightOnSave,'currentBrowserHeight',currentBrowserHeight, 'imgHeight', this.selectedImage.height);
-      const imgHeight = currentBrowserHeight / originalBrowserHeightOnSave * currentBrowserHeight;
+      const originalBroweserHeight = originalBrowserHeightOnSave || currentBrowserHeight;
+      console.log('originalBrowserHeightOnSave',originalBrowserHeightOnSave,'currentBrowserHeight',currentBrowserHeight, 'imgHeight', this.selectedImage.height, 'originalBroweserHeight',originalBroweserHeight);
+      const imgHeight = this.selectedImage.height * currentBrowserHeight / originalBroweserHeight;
       console.log("Calculated Image height:", imgHeight);
-      console.log("Final img height", Math.min(imgHeight, this.selectedImage.height));
-      const calculatedHeight = Math.min(imgHeight, this.selectedImage.height);
-      return calculatedHeight;
+      return imgHeight;
     }
   }
 }
@@ -51,40 +39,11 @@ export default {
 
 <style scoped>
 
-/*#img-overlay-wrapper {*/
-/*  position: absolute;*/
-/*  left: 0;*/
-/*  right: 0;*/
-/*  top: 0;*/
-/*  bottom: 0;*/
-/*  z-index: 1;*/
-
-/*}*/
-
-/*#img-overlay-wrapper .flex-container {*/
-/*  display: flex;*/
-/*  flex-direction: column;*/
-/*  justify-content: center;*/
-/*  align-items: center;*/
-/*  width: 100%;*/
-/*  height: 100%;*/
-/*}*/
-
-  #img-overlay-wrapper #img-container {
-  /*width: 50%;*/
-  opacity: 0.4;
-  transition: opacity 1s;
-  /*text-align: center;*/
+.selected-image-container{
+  overflow:hidden;
 }
-
-#img-overlay-wrapper #img-container:hover {
-  width: 50%;
-  opacity: 0.7;
-}
-
-
-#img-container img {
-  max-width: 100%;
+.selected-image-container img {
+  max-width: 10000px;
 }
 .controls{
   z-index: 100;

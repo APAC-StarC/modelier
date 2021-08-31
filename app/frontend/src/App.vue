@@ -1,9 +1,9 @@
 <template>
   <div id="app" class="">
-    <div v-if="selectedImage">
+    <div v-if="selectedImageUid">
       <portal selector="body">
         <GalleryItemViewer v-on:image-closed="closeGalleryImage"
-                           v-bind:selected-image="selectedImage"></GalleryItemViewer>
+                           v-bind:selected-image="images[selectedImageUid]" v-bind:selected-image-conf="galleryItemsConfig[selectedImageUid]"></GalleryItemViewer>
       </portal>
     </div>
     <div>
@@ -24,7 +24,7 @@
         <GalleryItemsPlayer
             v-on:save-image-orientation="saveOrientationOnSelectedImage"
             v-on:image-selected="selectGalleryImage"
-            v-bind:selected-image="selectedImage"
+            v-bind:selected-image="images[selectedImageUid]"
             v-bind:images="images"
             v-bind:gallery-items-config="galleryItemsConfig"
             v-bind:viewer="viewer"
@@ -206,7 +206,7 @@ export default {
       },
       images: {},
       galleryItemsConfig: {},
-      selectedImage: null,
+      selectedImageUid: null,
       ptPotreeReferences: {},
       undergroundDepictionsSettings: {}
     }
@@ -284,10 +284,10 @@ export default {
         case "KeyC":
           this.orbitControls.panDelta.x += mov;
           break;
-        case "KeyT":
+        case "KeyR":
           this.orbitControls.radiusDelta += zom;
           break;
-        case "KeyG":
+        case "KeyF":
           this.orbitControls.radiusDelta -= zom;
           break;
       }
@@ -423,9 +423,14 @@ export default {
       });
       return res;
     },
+    closePotreeSidebar: function(){
+      if (window.$('#potree_render_area').position().left > 0){
+        window.$(".potree_menu_toggle").click()
+      }
+    },
     selectGalleryImage: function (imgUID) {
-      console.log("selectedImageUrl:", this.images[imgUID].url, this.galleryItemsConfig[imgUID]);
-      this.selectedImage = this.images[imgUID];
+      this.closePotreeSidebar();
+      this.selectedImageUid = imgUID; // this.images[imgUID];
       const conf = this.galleryItemsConfig[imgUID];
       if (conf) {
         if (conf.viewTarget && conf.viewPosition) {
@@ -435,7 +440,7 @@ export default {
       }
     },
     closeGalleryImage: function () {
-      this.selectedImage = null;
+      this.selectedImageUid = null;
     },
     saveOrientationOnSelectedImage: function (imgUID) {
       const cameraPositionStr = this.viewer.scene.view.position.toArray().toString();
