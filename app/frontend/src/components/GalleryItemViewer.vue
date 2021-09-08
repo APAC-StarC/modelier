@@ -25,7 +25,7 @@ export default {
   computed:{
 
     imgHeight:function(){
-      const originalBrowserHeightOnSave = this.selectedImageConf.browserHeight || 0;
+      const originalBrowserHeightOnSave = this.selectedImageConf?.browserHeight || 0;
       const currentBrowserHeight = document.documentElement.clientHeight;
       const originalBroweserHeight = originalBrowserHeightOnSave || currentBrowserHeight;
       console.log('originalBrowserHeightOnSave',originalBrowserHeightOnSave,'currentBrowserHeight',currentBrowserHeight, 'imgHeight', this.selectedImage.height, 'originalBroweserHeight',originalBroweserHeight);
