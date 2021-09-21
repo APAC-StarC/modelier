@@ -8,8 +8,10 @@
     </div>
     <div>
       <div v-if="explosionEnabled" class="text-white mt-4">
-        <ExplosionPlayer v-bind:explosion-settings="explosionSettings"
-                         v-bind:pt-potree-references="ptPotreeReferences"></ExplosionPlayer>
+        <ExplosionPlayer v-bind:explosion-current-step="explosionCurrentStep" v-bind:explosion-settings="explosionSettings"
+                         v-bind:pt-potree-references="ptPotreeReferences"
+                        v-on:explosion-step-changed="setExplosionStep"
+        ></ExplosionPlayer>
       </div>
       <div class="mt-4 flex" v-if="galleryEnabled">
         <!-- Enabled: "bg-indigo-600", Not Enabled: "bg-gray-200" -->
@@ -204,6 +206,7 @@ export default {
       explosionSettings: {
         explosionMoveStep: 10,
       },
+      explosionCurrentStep: 0,
       images: {},
       galleryItemsConfig: {},
       selectedImageUid: null,
@@ -239,6 +242,10 @@ export default {
     this.orbitControls = this.viewer.getControls();
     window.addEventListener('keydown', this.keyDown);
     window.app = this;
+    window.addEventListener("message",this.parentMessage);
+  },
+  destroyed: function() {
+    window.removeEventListener("message", this.parentMessage);
   },
   methods: {
     keyDown: function (e) {
@@ -301,6 +308,9 @@ export default {
           document.exitFullscreen();
         }
       }
+    },
+    setExplosionStep: function(step){
+      this.explosionCurrentStep = step;
     },
     saveConfigOnServer: function () {
       //Gather all important stuff to send on the server.
@@ -455,6 +465,32 @@ export default {
       this.galleryItemsConfig[imgUID].browserWidth = document.documentElement.clientWidth;
       this.galleryItemsConfig[imgUID].browserHeight = document.documentElement.clientHeight;
       this.saveConfigOnServer();
+    },
+    parentMessage:function(e){
+      console.log(e);
+       if (e.data.func == 'explode') {
+         const val = e.data.value;
+          this.setExplosionStep(val);
+      }
+       if (e.data.func == 'gallery') {
+         const val = e.data.value;
+         this.galleryOpen = val;
+      }
+       if (e.data.func == 'gpr'){
+         const val = e.data.value;
+         if (val){
+           this.depictionsOpen = true;
+           for (const uid in this.depictions) {
+             this.depictions[uid].visible = true;
+           }
+         }else{
+           this.depictionsOpen = false;
+           for (const uid in this.depictions) {
+             this.depictions[uid].visible = false;
+           }
+         }
+       }
+
     },
     render: function () {
       //viewer.renderer.render( this.scene , this.camera);
