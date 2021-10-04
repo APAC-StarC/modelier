@@ -1,3 +1,7 @@
+# Development
+
+## Frontend 
+For frontend development using Vue, you need to navigate to app/frontend and run `npm run serve` to start the vue compiler.
 # After Deployment
 
 ## Configure your instance

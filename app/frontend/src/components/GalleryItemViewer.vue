@@ -21,9 +21,8 @@ export default {
       opacity: 0.5,
     }
   },
-  props: ['selectedImage', 'selectedImageConf'],
+  props: ['selectedImage', 'selectedImageConf','viewer'],
   computed:{
-
     imgHeight:function(){
       const originalBrowserHeightOnSave = this.selectedImageConf?.browserHeight || 0;
       const currentBrowserHeight = document.documentElement.clientHeight;

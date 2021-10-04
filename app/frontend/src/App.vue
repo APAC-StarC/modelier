@@ -2,8 +2,9 @@
   <div id="app" class="">
     <div v-if="selectedImageUid">
       <portal selector="body">
-        <GalleryItemViewer v-on:image-closed="closeGalleryImage"
+        <GalleryItemViewer v-on:image-closed="closeGalleryImage" v-bind:viewer="viewer" v-bind:default-fov="defaultFOV"
                            v-bind:selected-image="images[selectedImageUid]" v-bind:selected-image-conf="galleryItemsConfig[selectedImageUid]"></GalleryItemViewer>
+        <div class="absolute bottom-0 py-2 text-white bg-gray-800 px-3" style="z-index: 1000;">FOV:{{viewer.getFOV()}}</div>
       </portal>
     </div>
     <div>
@@ -194,6 +195,7 @@ export default {
       potreeProjectConfig: null,
       orbitControls: window.viewer.orbitControls,
       // CYI Tools Viewer settings
+      defaultFOV: 60,
       galleryOpen: false,
       depictionsOpen: false,
       adminMode: window.adminMode,
@@ -213,6 +215,13 @@ export default {
       ptPotreeReferences: {},
       undergroundDepictionsSettings: {}
     }
+  },
+  watch: {
+    galleryOpen: function (val) {
+      if(val){
+        this.defaultFOV = this.viewer.getFOV();
+      }
+    },
   },
   computed: {
     // a computed getter
@@ -241,6 +250,8 @@ export default {
     this.viewer.scene.scene.add(axesHelper); // Potree saves the THREEJs scene under a scene ref in the Potree scene
     this.orbitControls = this.viewer.getControls();
     window.addEventListener('keydown', this.keyDown);
+    this.viewer.renderer.domElement.addEventListener('wheel', this.mouseWheel);
+    //this.viewer.renderer.domElement.addEventListener('DOMMouseScroll', this.mouseWheel, false);
     window.app = this;
     window.addEventListener("message",this.parentMessage);
   },
@@ -248,6 +259,23 @@ export default {
     window.removeEventListener("message", this.parentMessage);
   },
   methods: {
+    mouseWheel: function(e){
+      const fov = this.viewer.getFOV();
+
+      if (e.ctrlKey && e.shiftKey && this.selectedImageUid){
+        e.preventDefault();
+        //Our cue to modify FOV
+        if(e.wheelDelta > 0 && fov < 100){
+          this.viewer.setFOV(fov + 1);
+          console.log("Setting fov at", fov+1);
+        }else if(e.wheelDelta < 0 && fov > 1){
+          this.viewer.setFOV(fov - 1);
+        }
+        return false;
+      }else if (!e.ctrlKey && !e.shiftKey && this.selectedImageUid){
+        e.preventDefault();
+      }
+    },
     keyDown: function (e) {
       const rot = 0.01;
       const zom = 0.05
@@ -446,16 +474,19 @@ export default {
         if (conf.viewTarget && conf.viewPosition) {
           this.viewer.setCameraMode(conf.cameraMode); //window.Potree.CameraMode.ORTHOGRAPHIC);
           this.viewer.scene.view.setView(this.csvToFloatList(conf.viewPosition), this.csvToFloatList(conf.viewTarget));
+          this.viewer.setFOV(conf.fov || this.defaultFOV);
         }
       }
     },
     closeGalleryImage: function () {
       this.selectedImageUid = null;
+      this.viewer.setFOV(this.defaultFOV);
     },
     saveOrientationOnSelectedImage: function (imgUID) {
       const cameraPositionStr = this.viewer.scene.view.position.toArray().toString();
       const targetStr = this.viewer.scene.view.getPivot().toArray().toString();
       const cameraMode = this.viewer.scene.cameraMode;
+      const fov = this.viewer.getFOV();
       if (!this.galleryItemsConfig[imgUID]) {
         this.galleryItemsConfig[imgUID] = {}
       }
@@ -464,6 +495,7 @@ export default {
       this.galleryItemsConfig[imgUID].cameraMode = cameraMode;
       this.galleryItemsConfig[imgUID].browserWidth = document.documentElement.clientWidth;
       this.galleryItemsConfig[imgUID].browserHeight = document.documentElement.clientHeight;
+      this.galleryItemsConfig[imgUID].fov = fov;
       this.saveConfigOnServer();
     },
     parentMessage:function(e){
