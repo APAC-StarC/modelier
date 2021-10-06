@@ -118,12 +118,12 @@ class PointcloudInlineAdmin(admin.StackedInline):
     model = Pointcloud
     extra=0
 
-class GalleryImageInline(admin.TabularInline):
+class GalleryImageInline(admin.StackedInline):
     suit_classes = 'suit-tab suit-tab-gallery'
     model = GalleryImage
     extra = 0
 
-class GeoreferencedImagesInline(admin.TabularInline):
+class GeoreferencedImagesInline(admin.StackedInline):
     suit_classes = 'suit-tab suit-tab-georeferenced'
     model = UndergroundDepiction
     extra = 0
