@@ -113,17 +113,52 @@ from suit.sortables import SortableTabularInline, SortableStackedInline
 #
 
 
-class PointcloudInlineAdmin(admin.TabularInline):
+class PointcloudInlineAdmin(admin.StackedInline):
+    suit_classes = 'suit-tab suit-tab-general'
     model = Pointcloud
+    extra=0
 
 class GalleryImageInline(admin.TabularInline):
+    suit_classes = 'suit-tab suit-tab-gallery'
     model = GalleryImage
+    extra = 0
 
-class UndergroundDepictionInline(admin.TabularInline):
+class GeoreferencedImagesInline(admin.TabularInline):
+    suit_classes = 'suit-tab suit-tab-georeferenced'
     model = UndergroundDepiction
+    extra = 0
 
 @admin.register(Visualization)
 class VisualizationAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_display = ['id', 'title', 'admin_management_link', 'preview_link', 'get_embedded_code']
-    inlines = [PointcloudInlineAdmin, GalleryImageInline, UndergroundDepictionInline]
+    inlines = [PointcloudInlineAdmin, GalleryImageInline, GeoreferencedImagesInline]
+
+    fieldsets = [
+            (None, {
+                'classes': ('suit-tab', 'suit-tab-general',),
+                'fields': ['title', 'subtitle',"tools_enabled"]
+            }),
+
+            ('Potree Tools Settings', {
+                'classes': ('suit-tab', 'suit-tab-potreetools',),
+                'fields': ["show_appearance", "show_tools", "show_scene", "show_filters",
+                           "show_about"]}),
+
+            ('', {
+                'classes': ('suit-tab', 'suit-tab-gallery',),
+                'fields': []}),
+            ('', {
+                'classes': ('suit-tab', 'suit-tab-georeferenced',),
+                'fields': []}),
+            ('Development', {
+                'classes': ('suit-tab', 'suit-tab-development',),
+                'fields': ['potree_config']}),
+
+        ]
+
+    suit_form_tabs = (('general', 'General'),
+                      ('potreetools', "Potree tools"),
+                      ('gallery','Gallery'),
+                      ('georeferenced', "Georeferenced photos"),
+                      ('development','Development'))

@@ -350,3 +350,7 @@ class UndergroundDepiction(models.Model):
     @property
     def jsId(self):
         return str(self.id.hex)
+
+    class Meta:
+        verbose_name = 'Image'
+        verbose_name_plural = 'Georeferenced images'
