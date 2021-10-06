@@ -393,9 +393,12 @@ export default {
       Potree.loadProject(this.viewer, data);
        */
       const dataToInitialize = this.potreeProjectConfig;
-      dataToInitialize.pointclouds = []; //They get loaded from elsewhere right now
-      dataToInitialize.geopackages = []; //Not supported right now as they need to be loaded AFTER pointclouds have been loaded
-      window.Potree.loadProject(this.viewer, dataToInitialize);
+      if (dataToInitialize){
+          dataToInitialize.pointclouds = []; //They get loaded from elsewhere right now
+         dataToInitialize.geopackages = []; //Not supported right now as they need to be loaded AFTER pointclouds have been loaded
+        window.Potree.loadProject(this.viewer, dataToInitialize);
+      }
+
 
       this.galleryItemsConfig = this.customFeaturesConfig?.galleryItemsSettings || {};
       this.explosionEnabled = this.customFeaturesConfig?.explosionEnabled || false;
