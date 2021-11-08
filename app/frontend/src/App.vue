@@ -466,6 +466,11 @@ export default {
       });
       return res;
     },
+    openPotreeSidebar: function(){
+      if (window.$('#potree_render_area').position().left <= 0){
+        window.$(".potree_menu_toggle").click()
+      }
+    },
     closePotreeSidebar: function(){
       if (window.$('#potree_render_area').position().left > 0){
         window.$(".potree_menu_toggle").click()
@@ -515,6 +520,7 @@ export default {
       }
        if (e.data.func == 'gpr'){
          const val = e.data.value;
+         this.openPotreeSidebar();
          this.depictionsOpen = val;
        }
 
