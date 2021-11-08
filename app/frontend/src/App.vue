@@ -250,7 +250,7 @@ export default {
     this.viewer.scene.scene.add(axesHelper); // Potree saves the THREEJs scene under a scene ref in the Potree scene
     this.orbitControls = this.viewer.getControls();
     window.addEventListener('keydown', this.keyDown);
-    this.viewer.renderer.domElement.addEventListener('wheel', this.mouseWheel);
+    //this.viewer.renderer.domElement.addEventListener('wheel', this.mouseWheel, {passive: true});
     //this.viewer.renderer.domElement.addEventListener('DOMMouseScroll', this.mouseWheel, false);
     window.app = this;
     window.addEventListener("message",this.parentMessage);
@@ -261,8 +261,8 @@ export default {
   methods: {
     mouseWheel: function(e){
       const fov = this.viewer.getFOV();
-
       if (e.ctrlKey && e.shiftKey && this.selectedImageUid){
+        console.log('preventDefault')
         e.preventDefault();
         //Our cue to modify FOV
         if(e.wheelDelta > 0 && fov < 100){
@@ -271,8 +271,9 @@ export default {
         }else if(e.wheelDelta < 0 && fov > 1){
           this.viewer.setFOV(fov - 1);
         }
-        return false;
+
       }
+
     },
     keyDown: function (e) {
       const rot = 0.01;
@@ -404,7 +405,6 @@ export default {
       this.explosionEnabled = this.customFeaturesConfig?.explosionEnabled || false;
       this.galleryEnabled = this.customFeaturesConfig?.galleryEnabled || false;
       this.depictionsEnabled = this.customFeaturesConfig?.depictionsEnabled || false;
-      this.depictionsOpen = this.depictionsEnabled;
       if (this.customFeaturesConfig?.explosionSettings) {
         this.explosionSettings = this.customFeaturesConfig?.explosionSettings
       }
@@ -515,22 +515,11 @@ export default {
       }
        if (e.data.func == 'gpr'){
          const val = e.data.value;
-         if (val){
-           this.depictionsOpen = true;
-           for (const uid in this.depictions) {
-             this.depictions[uid].visible = true;
-           }
-         }else{
-           this.depictionsOpen = false;
-           for (const uid in this.depictions) {
-             this.depictions[uid].visible = false;
-           }
-         }
+         this.depictionsOpen = val;
        }
 
     },
     render: function () {
-      //viewer.renderer.render( this.scene , this.camera);
       this.viewer.renderer.render(this.viewer.scene.scene, this.viewer.scene.getActiveCamera());
     }
   }
