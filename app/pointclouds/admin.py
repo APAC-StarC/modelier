@@ -137,7 +137,7 @@ class VisualizationAdmin(admin.ModelAdmin):
     fieldsets = [
             (None, {
                 'classes': ('suit-tab', 'suit-tab-general',),
-                'fields': ['title', 'subtitle',"tools_enabled"]
+                'fields': ['title', 'subtitle',"description", "tools_enabled"]
             }),
 
             ('Potree Tools Settings', {

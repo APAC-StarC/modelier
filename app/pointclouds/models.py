@@ -2,6 +2,7 @@ import stringcase
 import uuid
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.html import linebreaks,mark_safe
 from urllib.parse import urlencode
 from django.contrib.sites.models import Site
 from django.urls import reverse
@@ -221,7 +222,7 @@ class Visualization(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
     subtitle = models.CharField(max_length=254, blank=True, help_text="Viewer Title")
-
+    description = models.TextField(blank=True)
     # toolbar sections
     tools_enabled = models.BooleanField(default=True)
     show_appearance = models.BooleanField(default=True)
@@ -238,6 +239,11 @@ class Visualization(models.Model):
         else:
             pts = self.pointclouds.all()
         config = {
+            "visConf":{
+                "title": self.title,
+                "subtitle": self.subtitle,
+                "description": mark_safe(linebreaks(self.description))
+            },
             "menuConf": {
                 "toolsEnabled": self.tools_enabled,
                 "showAppearance": self.show_appearance,

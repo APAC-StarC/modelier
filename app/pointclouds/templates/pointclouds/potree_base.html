@@ -258,6 +258,8 @@
                 {% if not vis.show_about %}
                     $("#menu_about").next().html("");
                     $("#menu_about").hide();
+                {% else %}
+                    $("#menu_about").next().html({{ vis.description|linebreaksbr }});
                 {% endif %}
                 {% if not vis.show_appearance %}
                     $("#menu_appearance").next().html("");

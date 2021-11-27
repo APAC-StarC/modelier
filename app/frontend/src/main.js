@@ -25,7 +25,7 @@ viewer.setMinNodeSize(0);
 viewer.setDescription(visConfig.title);
 
 
-const { menuConf } = visConfig;
+const { menuConf, visConf } = visConfig;
 if (menuConf.toolsEnabled){
     viewer.loadGUI().then(() => {
         viewer.setLanguage('en');
@@ -44,28 +44,43 @@ if (menuConf.toolsEnabled){
         if (!menuConf.showAbout){
             $("#menu_about").next().html("");
             $("#menu_about").hide();
+        }else{
+            $("#menu_about").html("About Potree");
         }
         if (!menuConf.showAppearance){
             $("#menu_appearance").next().html("");
             $("#menu_appearance").hide();
         }
 
-        let section = $(`
+        let content, section, sections = [];
+        if (visConf.description){
+            let section = $(`
+            <h3 id="menu_model_description" class="accordion-header ui-widget"><span>About the Project</span></h3>
+            <div class="accordion-content ui-widget pv-menu-list p-2"></div>
+            `);
+            let content = section.last();
+            content.html(visConf.description);
+            section.first().click(() => content.slideToggle());
+            sections.push(section);
+        }
+        section = $(`
         <h3 id="menu_meta" class="accordion-header ui-widget"><span>CYI Tools</span></h3>
         <div class="accordion-content ui-widget pv-menu-list"></div>
         `);
-        let content = section.last();
+        content = section.last();
         content.html(`
         <div id="cyi-app">
         </div>
         `);
         section.first().click(() => content.slideToggle());
-        $('#potree_menu').append(section)
+        sections.push(section);
+
+        sections.forEach(section => $('#potree_menu').append(section));
         //section.insertBefore($('#menu_about'));
 
         new Vue({
           render: h => h(AdminApp),
-        }).$mount('#cyi-app')
+        }).$mount('#cyi-app');
 
 
     });
