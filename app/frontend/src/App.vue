@@ -233,18 +233,19 @@ export default {
       return window.fullScreen;
     }
   },
-  created: function () {
-    let _this = this;
-    this.loadInitialStateConfig();
-    for (const [ptId, ptConf] of Object.entries(visConfig.pointclouds)) {
-      window.Potree.loadPointCloud(ptConf.url, ptConf.title, function (e) {
-        let pointcloud = e.pointcloud;
-        _this.ptPotreeReferences[ptId] = pointcloud;
-        _this.viewer.scene.addPointCloud(pointcloud);
-        _this.viewer.fitToScreen();
-        _this.initializeExplosionIfNewModel(ptId);
-      });
-    }
+  created: async function () {
+
+
+    await this.loadInitialStateConfig();
+    // for (const [ptId, ptConf] of Object.entries(visConfig.pointclouds)) {
+    //   window.Potree.loadPointCloud(ptConf.url, ptConf.title, function (e) {
+    //     let pointcloud = e.pointcloud;
+    //     _this.ptPotreeReferences[ptId] = pointcloud;
+    //     _this.viewer.scene.addPointCloud(pointcloud);
+    //     _this.viewer.fitToScreen();
+    //     _this.initializeExplosionIfNewModel(ptId);
+    //   });
+    // }
 
     const axesHelper = new THREE.AxesHelper(5);
     this.viewer.scene.scene.add(axesHelper); // Potree saves the THREEJs scene under a scene ref in the Potree scene
@@ -376,29 +377,66 @@ export default {
       //Save on server
       this.saveConfigOnServer();
     },
-    loadInitialStateConfig: function () {
-      this.images = visConfig?.images; //Copy image definitions from visConfig to app
-      this.undergroundDepictions = visConfig?.undergroundDepictions;
+    loadInitialStateConfig: async function () {
+      this.images = this.visConfig?.images; //Copy image definitions from visConfig to app
+      this.undergroundDepictions = this.visConfig?.undergroundDepictions;
       this.potreeProjectConfig = this.visConfig.jsConf?.potree;
       this.customFeaturesConfig = this.visConfig.jsConf?.customFeatures;
 
-      // For initialization, for now, we decide not to load any measurements or volumes etc
-      /*
-      data.measurements = [];
-      data.volumes = [];
-      data.cameraAnimations = [];
-      data.classification = {};
-      //data.profiles = data.profiles || [];
-      //data.orientedImages =data.orientedImages || [];
-      //data.annotations = data.annotations || []; //Should be passed to the Vue component for editing, and also be saved on the conf properly
-      Potree.loadProject(this.viewer, data);
-       */
       const dataToInitialize = this.potreeProjectConfig;
-      if (dataToInitialize){
-          dataToInitialize.pointclouds = []; //They get loaded from elsewhere right now
-         dataToInitialize.geopackages = []; //Not supported right now as they need to be loaded AFTER pointclouds have been loaded
-        window.Potree.loadProject(this.viewer, dataToInitialize);
+
+      let preLoadedModelIdx;
+      const preExistingModels = dataToInitialize?.pointclouds || [];
+      let newModelsToLoad = {};
+
+      // Create a lookup reference that can allow us to map pointcloud urls to their relevant db ID for everything else to function
+      // We will use this later in this method to get a reference to the actual ThreeJS Scene PointCloud
+      const modelsNameIdLookup = {};
+      for (const [ptId, ptConf] of Object.entries(this.visConfig.pointclouds)) {
+        modelsNameIdLookup[ptConf.title] = ptId;
       }
+
+      // Now for models that had previous configuration in the Potree Project, find them using their url
+      // and update their name in case the user changed that in the admin panel
+      // Else, add the model in a pool to be added on the scene
+      for (const [ptId, ptConf] of Object.entries(this.visConfig.pointclouds)) {
+        preLoadedModelIdx = preExistingModels.findIndex((pt)=> pt.url == ptConf.url);
+        if (preLoadedModelIdx > -1){
+          preExistingModels[preLoadedModelIdx].name = ptConf.title //Update title if it was changed in admin
+        }else{
+          newModelsToLoad[ptId] = ptConf;
+        }
+      }
+
+      if (dataToInitialize){
+         //Overwrite previous config with the new one. This will also drop any Pointcloud that was removed from the admin panel
+         dataToInitialize.pointclouds = preExistingModels;
+         dataToInitialize.geopackages = []; //Not supported right now as they need to be loaded AFTER pointclouds have been loaded
+         await window.Potree.loadProject(this.viewer, dataToInitialize);
+      }
+
+      // Now lets add the new models that where never saved on the Potree project before
+      const ptCloudAddPromises = [];
+      let promise;
+      Object.values(newModelsToLoad).forEach(ptConf => {
+        promise = window.Potree.loadPointCloud(ptConf.url, ptConf.title);
+        ptCloudAddPromises.push(promise);
+        promise.then(e =>{
+          this.viewer.scene.addPointCloud(e.pointcloud);
+        });
+      });
+      await Promise.all(ptCloudAddPromises);
+
+
+      // Now lets get the refs to the actual ThreeJS pointclouds and associate them with their ptId
+      // using modelsUrlptIdLookup
+      let ptId;
+      this.viewer.scene.pointclouds.forEach((pt)=>{
+        ptId = modelsNameIdLookup[pt.name];
+        this.ptPotreeReferences[ptId] = pt;
+        this.initializeExplosionIfNewModel(ptId);
+      })
+      this.viewer.fitToScreen();
 
 
       this.galleryItemsConfig = this.customFeaturesConfig?.galleryItemsSettings || {};
@@ -440,11 +478,10 @@ export default {
         const camera = this.viewer.scene.getActiveCamera();
 
         let hit = window.Potree.Utils.getMousePointCloudIntersection(mouse, camera, this.viewer, this.viewer.scene.pointclouds);
-        console.log(hit);
 
         // add new annotation
         if (hit !== null) {
-          let currentAnnotation = this.viewer.scene.addAnnotation([
+          this.viewer.scene.addAnnotation([
             hit.location.x,
             hit.location.y,
             hit.location.z
@@ -452,7 +489,6 @@ export default {
             "title": `(${hit.location.x},${hit.location.y},${hit.location.z})`,
             "actions": []
           });
-          console.log(currentAnnotation);
         }
       }, {once: true});
     },
