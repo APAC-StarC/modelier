@@ -419,9 +419,10 @@ export default {
       const ptCloudAddPromises = [];
       let promise;
       Object.values(newModelsToLoad).forEach(ptConf => {
-        promise = window.Potree.loadPointCloud(ptConf.url, ptConf.title);
+        promise = window.Potree.loadPointCloud(ptConf.url, '');
         ptCloudAddPromises.push(promise);
         promise.then(e =>{
+          e.pointcloud.name = ptConf.title;
           this.viewer.scene.addPointCloud(e.pointcloud);
         });
       });
