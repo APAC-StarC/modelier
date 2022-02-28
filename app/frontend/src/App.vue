@@ -260,6 +260,7 @@ export default {
     window.removeEventListener("message", this.parentMessage);
   },
   methods: {
+    /*
     mouseWheel: function(e){
       const fov = this.viewer.getFOV();
       if (e.ctrlKey && e.shiftKey && this.selectedImageUid){
@@ -276,10 +277,12 @@ export default {
       }
 
     },
+    */
     keyDown: function (e) {
       const rot = 0.01;
       const zom = 0.05
       const mov = 0.001;
+      const fov = this.viewer.getFOV();
       switch (e.code) {
         case "KeyS":
         case "ArrowDown":
@@ -324,6 +327,16 @@ export default {
           break;
         case "KeyF":
           this.orbitControls.radiusDelta -= zom;
+          break;
+        case "KeyT":
+          if (fov < 100){
+            this.viewer.setFOV(fov + 1);
+          }
+          break;
+        case "KeyG":
+          if (fov > 1){
+            this.viewer.setFOV(fov - 1);
+          }
           break;
       }
       //this.orbitControls.update(0.01);

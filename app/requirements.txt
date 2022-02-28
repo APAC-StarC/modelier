@@ -19,7 +19,7 @@ sqlparse==0.3.1
 stringcase==1.2.0
 urllib3==1.25.10
 #https://github.com/darklow/django-suit/tarball/v2
-https://github.com/pulse-mind/django-suit/tarball/django32
+https://github.com/pulse-mind/django-suit/tarball/v2
 
 
 
