@@ -21,6 +21,17 @@
       <div><span>z: </span><input v-model="z" /></div>
       <div><span>Rot(deg) </span><input v-model="rot" /></div>
     </div>
+    <div class="flex flex-col mb-2">
+        <div><span>Anchor Point</span></div>
+        <div>
+          <select v-model="anchorPoint" class="h-6 w-24">
+            <option value="1">P1</option>
+            <option value="2">P2</option>
+            <option value="3">P3</option>
+            <option value="4">P4</option>
+          </select>
+      </div>
+    </div>
 
     <button v-on:click="saveValues">Update</button>
   </div>
@@ -29,7 +40,7 @@
 <script>
 export default {
   name: "UndergroundDepictionConfigItem",
-  props: ['udId', 'item', 'initP1', 'initP2', 'initP3', 'initP4', 'initZ', 'initRot'],
+  props: ['udId', 'item', 'initP1', 'initP2', 'initP3', 'initP4', 'initZ', 'initRot', 'initAnchorPoint'],
   data() {
     return {
       p1: this.initP1.clone(),
@@ -38,6 +49,7 @@ export default {
       p4: this.initP4.clone(),
       z: this.initZ,
       rot: this.initRot,
+      anchorPoint : this.initAnchorPoint ? this.initAnchorPoint.toString() : "1"
     }
   },
   methods: {
@@ -54,6 +66,7 @@ export default {
         y4: parseFloat(this.p4.y),
         z: parseFloat(this.z),
         rot: parseInt(this.rot),
+        anchorPoint: parseInt(this.anchorPoint)
       }
       this.$emit('item-config-updated', this.udId, values);
     }

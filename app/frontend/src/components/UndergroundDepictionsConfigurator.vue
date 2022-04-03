@@ -12,6 +12,7 @@
               v-bind:init-p4="item.p4"
               v-bind:init-z="item.z"
               v-bind:init-rot="item.rot"
+              v-bind:init-anchor-point="item.anchorPoint"
               v-bind:item="depictions[udId]"
               v-bind:ud-id="udId"
           ></UndergroundDepictionConfigItem>
@@ -77,34 +78,47 @@ export default {
       });
       this.vectors = vectors;
     },
-    rerenderMesh(mesh, width, height, rot, z, centerX, centerY) {
-
+    rerenderMesh(mesh, width, height, angle, rot, z, centerX, centerY) {
+      //map.center = new THREE.Vector2(centerX, centerY);
+      mesh.position.set(centerX, centerY, z);
+      mesh.rotateZ(angle + (rot * 3.14 / 180))
       mesh.width = width;
       mesh.heigh = height;
       mesh.position.set(centerX, centerY, z);
-      mesh.rotation.z = rot * 3.14 / 180;
       //mesh.rotation.x = 3.14;
-      mesh.rotation.y = 3.14;
+      //mesh.rotation.y = 3.14;
     },
-    calcWidthHeight(p1, p2, p3, p4) {
-      const centerX = (p1.x + p2.x + p3.x + p4.x) / 4;
-      const centerY = (p1.y + p2.y + p3.y + p4.y) / 4;
-      // const center = new THREE.Vector2(centerX, centerY);
-      // p1.rotateAround(center, rotRad);
-      // p2.rotateAround(center, rotRad);
-      // p3.rotateAround(center, rotRad);
-      // p4.rotateAround(center, rotRad);
-
-      const dist1 = (p1.distanceTo(p4) + p2.distanceTo(p3)) / 2;  //(this.calcDistance(vals.x4, vals.y4, vals.x1, vals.y1) + this.calcDistance(vals.x3, vals.y3, vals.x2, vals.y2)) / 2;
-      const dist2 = (p2.distanceTo(p1) + p3.distanceTo(p4)) / 2;  //this.calcDistance(vals.x2, vals.y2, vals.x1, vals.y1) + this.calcDistance(vals.x3, vals.y3, vals.x4, vals.y4)) / 2;
-      const width = Math.max(dist1, dist2);
-      const height = Math.min(dist1, dist2);
-      return {width, height, centerX, centerY}
+    calcWidthHeight(t1, t2, t3) {
+      const width = (t2.distanceTo(t1));
+      const height = (t3.distanceTo(t2));
+      const centerX = t2.x - (t2.x - t1.x)/2 - (t2.x - t3.x)/2;
+      const centerY = t2.y - (t2.y-t1.y)/2 - (t2.y - t3.y)/2;
+      const angle = Math.atan2(t2.y - t1.y, t2.x - t1.x);
+      return {width, height, centerX, centerY, angle}
+    },
+    getSelectedPoints(p1,p2,p3,p4, anchorPoint){
+      let selectedPoints;
+      switch (anchorPoint) {
+        case 1:
+          selectedPoints = [p1,p2,p3];
+          break;
+        case 2:
+          selectedPoints = [p2,p3,p4];
+          break;
+        case 3:
+          selectedPoints = [p3,p4, p1];
+          break;
+        case 4:
+          selectedPoints = [p4, p1,p2];
+          break;
+        default:
+          selectedPoints = [p1,p2,p3];
+      }
+      const [t1,t2,t3]= selectedPoints;
+      return [t1,t2,t3];
     },
     createMeshes() {
       Object.entries(this.depictions).forEach(([udId, item]) => {
-        const map = new THREE.TextureLoader().load(item.url);
-        const material = new THREE.MeshBasicMaterial({map: map, opacity: 0.9, transparent: true,});
         if (!this.settings[udId]) {
           return;
         }
@@ -112,27 +126,58 @@ export default {
         //const centerY = (vals.y1 + vals.y2 + vals.y3 + vals.y4) / 4;
         let {p1, p2, p3, p4} = this.vectors[udId];
         const {z, rot} = this.settings[udId];
-        const {width, height, centerX, centerY} = this.calcWidthHeight(p1, p2, p3, p4);
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.01), material);
+        const startingPoint = 1;
+
+        const [t1,t2,t3]= this.getSelectedPoints(p1,p2,p3,p4, startingPoint);
+
+        const {width, height, centerX, centerY, angle} = this.calcWidthHeight(t1, t2, t3);
+
+        const geometry = new THREE.PlaneGeometry( width, height );
+        const map = new THREE.TextureLoader().load(item.url);
+        const material = new THREE.MeshBasicMaterial({map: map, opacity: 0.9, transparent: true, side: THREE.FrontSide});
+        const mesh = new THREE.Mesh(geometry, material);
+
         mesh.visible = false;
         this.viewer.scene.scene.add(mesh);
-        this.rerenderMesh(mesh, width, height, rot, z, centerX, centerY);
+        this.rerenderMesh(mesh, width, height, angle, rot, z, centerX, centerY);
         this.meshes[udId] = mesh;
+
+        // Render dots for each image for debugging
+        // const dots = this.renderDots([p1,p2,p3,p4], z);
+        // dots.forEach((dot)=>{
+        //   this.viewer.scene.scene.add( dot );
+        // })
+
       })
+    },
+    renderDots(pointsArr){
+      const dots = [];
+      pointsArr.forEach((dot)=>{
+        var dotGeometry = new THREE.BufferGeometry();
+        console.log("calculating dot to display", dot.toArray());
+        dotGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( [...dot.toArray()], 3 ) );
+        dotGeometry.setAttribute( 'size', new THREE.Float32BufferAttribute( [1,1,1], 1 ) );
+        var dotMaterial = new THREE.PointsMaterial( { size: 0.1 } );
+        var meshDot = new THREE.Points( dotGeometry, dotMaterial );
+        dots.push(meshDot);
+      })
+      return dots
     },
     updateMesh(udId, vals) {
       const p1 = new THREE.Vector2(vals.x1, vals.y1);
       const p2 = new THREE.Vector2(vals.x2, vals.y2);
       const p3 = new THREE.Vector2(vals.x3, vals.y3);
       const p4 = new THREE.Vector2(vals.x4, vals.y4);
-      const {z, rot} = vals;
+      const {z, rot, anchorPoint} = vals;
+      const ap = anchorPoint || 1;
       this.vectors[udId] = {
         p1,
         p2,
         p3,
         p4,
         z,
-        rot
+        rot,
+        anchorPoint: ap
       };
       this.settings[udId] = {
         x1: p1.x,
@@ -144,12 +189,16 @@ export default {
         x4: p4.x,
         y4: p4.y,
         z,
-        rot
+        rot,
+        anchorPoint: ap
       }
-      const {width, height, centerX, centerY} = this.calcWidthHeight(p1, p2, p3, p4);
+      console.log("Refreshing with anchor point", ap);
+      const [t1,t2,t3]= this.getSelectedPoints(p1,p2,p3,p4, ap);
+      console.log("[t1,t2,t3]", [t1,t2,t3]);
+      const {width, height, centerX, centerY, angle} = this.calcWidthHeight(t1, t2, t3);
       const mesh = this.meshes[udId];
       this.$emit('on-save', 'depictions');
-      this.rerenderMesh(mesh, width, height, rot, z, centerX, centerY);
+      this.rerenderMesh(mesh, width, height, angle, rot, z, centerX, centerY);
     }
   },
 }
