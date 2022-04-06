@@ -429,6 +429,10 @@ export default {
       }
 
       // Now lets add the new models that where never saved on the Potree project before
+      this.explosionEnabled = this.customFeaturesConfig?.explosionEnabled || false; // Pre initialize
+      if (this.customFeaturesConfig?.explosionSettings) {
+        this.explosionSettings = this.customFeaturesConfig?.explosionSettings
+      }
       const ptCloudAddPromises = [];
       let promise;
       Object.values(newModelsToLoad).forEach(ptConf => {
@@ -454,12 +458,9 @@ export default {
 
 
       this.galleryItemsConfig = this.customFeaturesConfig?.galleryItemsSettings || {};
-      this.explosionEnabled = this.customFeaturesConfig?.explosionEnabled || false;
+
       this.galleryEnabled = this.customFeaturesConfig?.galleryEnabled || false;
       this.depictionsEnabled = this.customFeaturesConfig?.depictionsEnabled || false;
-      if (this.customFeaturesConfig?.explosionSettings) {
-        this.explosionSettings = this.customFeaturesConfig?.explosionSettings
-      }
       if (this.customFeaturesConfig?.undergroundDepictionsSettings) {
         this.undergroundDepictionsSettings = this.customFeaturesConfig.undergroundDepictionsSettings
       }
