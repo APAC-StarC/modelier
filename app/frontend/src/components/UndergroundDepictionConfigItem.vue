@@ -42,6 +42,7 @@ export default {
   name: "UndergroundDepictionConfigItem",
   props: ['udId', 'item', 'initP1', 'initP2', 'initP3', 'initP4', 'initZ', 'initRot', 'initAnchorPoint'],
   data() {
+    console.log("Initializing anchorPoint to", this.initAnchorPoint);
     return {
       p1: this.initP1.clone(),
       p2: this.initP2.clone(),
@@ -66,8 +67,9 @@ export default {
         y4: parseFloat(this.p4.y),
         z: parseFloat(this.z),
         rot: parseInt(this.rot),
-        anchorPoint: parseInt(this.anchorPoint)
+        anchorPoint: this.anchorPoint
       }
+      console.log("Saving values", this.anchorPoint);
       this.$emit('item-config-updated', this.udId, values);
     }
   }

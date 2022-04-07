@@ -67,6 +67,7 @@ export default {
         const p4 = new THREE.Vector2(vals.x4, vals.y4);
         const z = vals.z;
         const rot = vals.rot;
+        const anchorPoint = vals.anchorPoint;
         vectors[udId] = {
           p1,
           p2,
@@ -74,6 +75,7 @@ export default {
           p4,
           z,
           rot,
+          anchorPoint
         }
       });
       this.vectors = vectors;
@@ -81,7 +83,8 @@ export default {
     rerenderMesh(mesh, width, height, angle, rot, z, centerX, centerY) {
       //map.center = new THREE.Vector2(centerX, centerY);
       mesh.position.set(centerX, centerY, z);
-      mesh.rotateZ(angle + (rot * 3.14 / 180))
+      mesh.rotation.z = angle + (rot * 3.14 / 180);
+      // mesh.rotateZ()
       mesh.width = width;
       mesh.heigh = height;
       mesh.position.set(centerX, centerY, z);
@@ -99,16 +102,16 @@ export default {
     getSelectedPoints(p1,p2,p3,p4, anchorPoint){
       let selectedPoints;
       switch (anchorPoint) {
-        case 1:
+        case "1":
           selectedPoints = [p1,p2,p3];
           break;
-        case 2:
+        case "2":
           selectedPoints = [p2,p3,p4];
           break;
-        case 3:
+        case "3":
           selectedPoints = [p3,p4, p1];
           break;
-        case 4:
+        case "4":
           selectedPoints = [p4, p1,p2];
           break;
         default:
@@ -125,8 +128,8 @@ export default {
         //const centerX = (p1.x + p2.x + p3.x3 + p4.x4) / 4;
         //const centerY = (vals.y1 + vals.y2 + vals.y3 + vals.y4) / 4;
         let {p1, p2, p3, p4} = this.vectors[udId];
-        const {z, rot} = this.settings[udId];
-        const startingPoint = 1;
+        const {z, rot, anchorPoint} = this.settings[udId];
+        const startingPoint = anchorPoint;
 
         const [t1,t2,t3]= this.getSelectedPoints(p1,p2,p3,p4, startingPoint);
 
@@ -164,12 +167,13 @@ export default {
       return dots
     },
     updateMesh(udId, vals) {
+      console.log("Updating mesh with vals", vals);
       const p1 = new THREE.Vector2(vals.x1, vals.y1);
       const p2 = new THREE.Vector2(vals.x2, vals.y2);
       const p3 = new THREE.Vector2(vals.x3, vals.y3);
       const p4 = new THREE.Vector2(vals.x4, vals.y4);
       const {z, rot, anchorPoint} = vals;
-      const ap = anchorPoint || 1;
+      const ap = anchorPoint || "1";
       this.vectors[udId] = {
         p1,
         p2,
